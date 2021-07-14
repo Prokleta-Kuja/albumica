@@ -11,17 +11,30 @@ namespace albumica.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        // public DbSet<Account> Accounts { get; set; } = null!;
+        public DbSet<Item> Items { get; set; } = null!;
+        public DbSet<ItemTag> ItemTags { get; set; } = null!;
+        public DbSet<Tag> Tags { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // builder.Entity<Account>(e =>
-            // {
-            //     e.HasOne(p => p.Currency).WithMany(p => p!.Accounts).HasForeignKey(p => p.CurrencyId);
-            //     e.HasOne(p => p.Issuer).WithMany(p => p!.Accounts).HasForeignKey(p => p.IssuerId);
-            // });
+            builder.Entity<Item>(e =>
+            {
+                e.HasKey(p => p.ItemId);
+                e.HasMany(p => p.Tags).WithOne(p => p.Item!);
+            });
+
+            builder.Entity<ItemTag>(e =>
+            {
+                e.HasKey(t => new { t.ItemId, t.TagId });
+            });
+
+            builder.Entity<Tag>(e =>
+            {
+                e.HasKey(p => p.TagId);
+                e.HasMany(p => p.Items).WithOne(p => p.Tag!);
+            });
 
 
             foreach (var entityType in builder.Model.GetEntityTypes())
