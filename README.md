@@ -3,5 +3,5 @@ todo
 
 ### Misc
 ```
-dotnet outdated
+dotnet outdated ./src/
 dotnet ef migrations add -o Data/Migrations --no-build Initial
