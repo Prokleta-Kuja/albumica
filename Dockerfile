@@ -6,6 +6,8 @@ RUN dotnet restore
 
 COPY . .
 WORKDIR /app
+
+ARG Version=0.0.0
 RUN dotnet publish -c Release -o out --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS runtime
