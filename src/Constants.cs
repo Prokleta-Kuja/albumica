@@ -19,6 +19,7 @@ namespace albumica
         }
         public static class Settings
         {
+            public const string ImportRootPath = "/import";
             public static string DataPath(string file) => Path.Combine(Environment.CurrentDirectory, "appdata", file);
             public static readonly string AppDbConnectionString = $"Data Source={DataPath("app.db")}";
         }

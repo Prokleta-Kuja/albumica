@@ -58,5 +58,10 @@ namespace albumica.Data
                         .HasConversion<double>();
             }
         }
+        public async Task ProvisionDemoAsync()
+        {
+            Tags.Add(new("Test"));
+            await SaveChangesAsync();
+        }
     }
 }
