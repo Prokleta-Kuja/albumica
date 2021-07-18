@@ -1,4 +1,4 @@
-namespace albumica.Enums
+namespace albumica.Data
 {
     public enum TagCategory
     {
