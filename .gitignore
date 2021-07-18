@@ -5,7 +5,7 @@
 
 # Project specific
 appsettings.*.json
-/appdata
+/src/appdata
 
 # User-specific files
 *.rsuser

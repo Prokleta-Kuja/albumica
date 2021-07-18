@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using albumica.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,6 +30,17 @@ namespace albumica
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddDbContext<AppDbContext>(builder =>
+             {
+                 builder.UseSqlite(C.Settings.AppDbConnectionString);
+                 if (Debugger.IsAttached)
+                 {
+                     builder.EnableSensitiveDataLogging();
+                     builder.LogTo(message => Debug.WriteLine(message), new[] { RelationalEventId.CommandExecuted });
+                 }
+             });
+
+            services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
