@@ -1,5 +1,21 @@
 @page "/"
+@using System.IO
 
 <h1>Hello, world!</h1>
+@foreach (var file in Files)
+{
+    <img src="/images/@file.Name?width=300&height=120" alt="kita">
+}
 
-Welcome to your new app.
+@code {
+    List<FileInfo> Files = new();
+    protected override void OnAfterRender(bool fistRender)
+    {
+        if(fistRender)
+        {
+            var di = new DirectoryInfo(C.Settings.ImagesRootPath);
+            Files = di.GetFiles("*", SearchOption.AllDirectories).ToList();
+            StateHasChanged();
+        }
+    } 
+}

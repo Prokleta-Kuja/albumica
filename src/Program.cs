@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 namespace albumica
 {
@@ -17,8 +19,10 @@ namespace albumica
     {
         public static async Task Main(string[] args)
         {
-            var di = new DirectoryInfo(C.Settings.ImportRootPath);
-            di.Create();
+            var import = new DirectoryInfo(C.Settings.ImportRootPath); import.Create();
+            var images = new DirectoryInfo(C.Settings.ImagesRootPath); images.Create();
+            var cache = new DirectoryInfo(C.Settings.CacheRootPath); cache.Create();
+            //await Test();
 
             await InitializeDb(args);
             CreateHostBuilder(args).Build().Run();
@@ -50,6 +54,41 @@ namespace albumica
             {
                 await db.ProvisionDemoAsync();
             }
+        }
+        static async Task Test()
+        {
+            var import = new DirectoryInfo(C.Settings.ImportRootPath);
+            var fi = import.GetFiles().First();
+            var img = await Image.LoadAsync(fi.FullName);
+
+            var exif = img.Metadata.ExifProfile.Values.ToDictionary(m => m.Tag);
+            if (exif.ContainsKey(ExifTag.GPSLatitudeRef))
+            {
+                var latRef = exif[ExifTag.GPSLatitudeRef].GetValue();
+                var lat = exif[ExifTag.GPSLatitude].GetValue() as Rational[];
+                var lonRef = exif[ExifTag.GPSLongitudeRef].GetValue();
+                var lon = exif[ExifTag.GPSLongitude].GetValue() as Rational[];
+
+                var longitude = ConvertDegreeAngleToDouble(lon!, lonRef!.ToString());
+                var latitude = ConvertDegreeAngleToDouble(lat!, latRef!.ToString());
+            }
+        }
+
+        private static double ConvertDegreeAngleToDouble(Rational[] coordinates, string? exifGpsLatitudeRef)
+        {
+            return ConvertDegreeAngleToDouble(coordinates[0].ToDouble(), coordinates[1].ToDouble(), coordinates[2].ToDouble(), exifGpsLatitudeRef);
+        }
+        private static double ConvertDegreeAngleToDouble(double degrees, double minutes, double seconds, string? exifGpsLatitudeRef)
+        {
+            var result = ConvertDegreeAngleToDouble(degrees, minutes, seconds);
+            if (exifGpsLatitudeRef == "S")
+                result = -1 * result;
+
+            return result;
+        }
+        private static double ConvertDegreeAngleToDouble(double degrees, double minutes, double seconds)
+        {
+            return degrees + (minutes / 60) + (seconds / 3600);
         }
     }
 }
