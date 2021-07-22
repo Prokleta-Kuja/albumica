@@ -24,10 +24,11 @@ namespace albumica
             var import = new DirectoryInfo(C.Settings.ImportRootPath); import.Create();
             var images = new DirectoryInfo(C.Settings.ImagesRootPath); images.Create();
             var cache = new DirectoryInfo(C.Settings.CacheRootPath); cache.Create();
-            await Test();
+            await Test2();
+            // await Test();
 
-            await InitializeDb(args);
-            CreateHostBuilder(args).Build().Run();
+            // await InitializeDb(args);
+            // CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -122,6 +123,43 @@ namespace albumica
             // encodes and write the data to disk.
             // You can optionally set the encoder to choose.
             img.Save("bar.jpg");
+        }
+        static async Task Test2()
+        {
+            await Task.CompletedTask;
+            var img = Image.Load("vt4.jpg");
+
+            // AutoOrient to avoid boundig box brain fuck
+            img.Mutate(x => x.AutoOrient());
+            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+
+            // After AutoOrient exif is no longer needed
+            img.Metadata.ExifProfile = null;
+
+            // Resize for Azure long edge not greater then 1920
+            var azure = new ResizeOptions
+            {
+                Size = new Size(1920, 1920),
+                Mode = ResizeMode.Max,
+            };
+            var azureImg = img.Clone(x => x.Resize(azure));
+            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            System.Console.WriteLine($"x: {azureImg.Width} y: {azureImg.Height}");
+
+            //img.Save("for_azure.jpg");
+
+
+            // Resize for viewport
+            var viewport = new ResizeOptions
+            {
+                Size = new Size(1920, 1080),
+                Mode = ResizeMode.Max,
+            };
+            var viewportImg = img.Clone(x => x.Resize(viewport));
+            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            System.Console.WriteLine($"x: {viewportImg.Width} y: {viewportImg.Height}");
+
+            //img.Save("for_viewport.jpg");
         }
     }
 }
