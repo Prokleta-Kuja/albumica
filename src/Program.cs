@@ -160,6 +160,37 @@ namespace albumica
             System.Console.WriteLine($"x: {viewportImg.Width} y: {viewportImg.Height}");
 
             //img.Save("for_viewport.jpg");
+
+            // Calculate bounding box
+            /*
+function findScreenCoords(mouseEvent)
+{
+  if (mouseEvent)
+  {
+    console.log("x",mouseEvent.pageX,"y",mouseEvent.pageY);
+  }
+}
+document.getElementsByTagName("img")[0].onmousemove = findScreenCoords;
+
+Image size
+x 3880 y 5184 Original
+x 1437 y 1920 AzureOptimized
+
+Ratio
+3880/1437=2,7001
+
+Point of interest
+x 920 y 792
+x 340 y 294
+
+Get resized POI from original
+920/2,7001 = 340,7281
+792/2,7001 = 293,3225
+
+Get original POI from resized
+340*2,7001 = 919,x
+293*2,7001 = 791,x
+            */
         }
     }
 }
