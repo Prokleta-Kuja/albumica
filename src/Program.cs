@@ -11,7 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using SixLabors.ImageSharp.Processing;
 
 namespace albumica
 {
@@ -22,10 +24,11 @@ namespace albumica
             var import = new DirectoryInfo(C.Settings.ImportRootPath); import.Create();
             var images = new DirectoryInfo(C.Settings.ImagesRootPath); images.Create();
             var cache = new DirectoryInfo(C.Settings.CacheRootPath); cache.Create();
-            //await Test();
+            await Test2();
+            // await Test();
 
-            await InitializeDb(args);
-            CreateHostBuilder(args).Build().Run();
+            // await InitializeDb(args);
+            // CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -57,38 +60,106 @@ namespace albumica
         }
         static async Task Test()
         {
+            // TODO: Call as startup
+            Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+            // TODO: call daily at night
+            Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+
             var import = new DirectoryInfo(C.Settings.ImportRootPath);
-            var fi = import.GetFiles().First();
-            var img = await Image.LoadAsync(fi.FullName);
+            var inputFile = import.GetFiles().First();
 
-            var exif = img.Metadata.ExifProfile.Values.ToDictionary(m => m.Tag);
-            if (exif.ContainsKey(ExifTag.GPSLatitudeRef))
+            var info = Image.Identify(inputFile.FullName);
+            if (info == null)
             {
-                var latRef = exif[ExifTag.GPSLatitudeRef].GetValue();
-                var lat = exif[ExifTag.GPSLatitude].GetValue() as Rational[];
-                var lonRef = exif[ExifTag.GPSLongitudeRef].GetValue();
-                var lon = exif[ExifTag.GPSLongitude].GetValue() as Rational[];
-
-                var longitude = ConvertDegreeAngleToDouble(lon!, lonRef!.ToString());
-                var latitude = ConvertDegreeAngleToDouble(lat!, latRef!.ToString());
+                // TODO: this is video most likely
+                return;
             }
-        }
 
-        private static double ConvertDegreeAngleToDouble(Rational[] coordinates, string? exifGpsLatitudeRef)
-        {
-            return ConvertDegreeAngleToDouble(coordinates[0].ToDouble(), coordinates[1].ToDouble(), coordinates[2].ToDouble(), exifGpsLatitudeRef);
-        }
-        private static double ConvertDegreeAngleToDouble(double degrees, double minutes, double seconds, string? exifGpsLatitudeRef)
-        {
-            var result = ConvertDegreeAngleToDouble(degrees, minutes, seconds);
-            if (exifGpsLatitudeRef == "S")
-                result = -1 * result;
+            // Extract GPS coordinates
+            var exif = info.Metadata.ExifProfile.Values.ToDictionary(m => m.Tag);
+            var coordinateKeys = new ExifTag[] { ExifTag.GPSLatitudeRef, ExifTag.GPSLatitude, ExifTag.GPSLongitude };
+            var altitudeKeys = new ExifTag[] { ExifTag.GPSAltitude, ExifTag.GPSAltitudeRef };
 
-            return result;
+            if (coordinateKeys.All(k => exif.ContainsKey(k)))
+            {
+                var lat = exif[ExifTag.GPSLatitude].GetValue() as Rational[];
+                var lon = exif[ExifTag.GPSLongitude].GetValue() as Rational[];
+                var latRef = exif[ExifTag.GPSLatitudeRef].GetValue();
+
+                if (lat != null && lon != null && latRef != null)
+                {
+                    var longitude = lon[0].ToDouble() + (lon[1].ToDouble() / 60) + (lon[2].ToDouble() / 3600);
+                    var latitude = lat[0].ToDouble() + (lat[1].ToDouble() / 60) + (lat[2].ToDouble() / 3600);
+                    if (latRef.ToString()!.Equals("S", StringComparison.InvariantCultureIgnoreCase))
+                        latitude *= -1;
+                    // TODO: use
+
+                    // Extract altitude
+                    if (altitudeKeys.All(k => exif.ContainsKey(k)))
+                    {
+                        var alt = (Rational)exif[ExifTag.GPSAltitude].GetValue();
+                        var altRef = (byte)exif[ExifTag.GPSAltitudeRef].GetValue();
+
+                        var result = alt.ToDouble();
+                        if (altRef == 1)
+                            result *= -1; // Below see level
+
+                        // TODO: use
+                    }
+                }
+            }
+
+            // Resize and rotate
+            using var img = await Image.LoadAsync(inputFile.FullName);
+            var opt = new ResizeOptions();
+            opt.Size = new Size(500, 500);
+            opt.Mode = ResizeMode.Crop;
+            img.Mutate(x =>
+            {
+                x.Resize(opt);
+            });
+
+            // The library automatically picks an encoder based on the file extension then
+            // encodes and write the data to disk.
+            // You can optionally set the encoder to choose.
+            img.Save("bar.jpg");
         }
-        private static double ConvertDegreeAngleToDouble(double degrees, double minutes, double seconds)
+        static async Task Test2()
         {
-            return degrees + (minutes / 60) + (seconds / 3600);
+            await Task.CompletedTask;
+            var img = Image.Load("vt4.jpg");
+
+            // AutoOrient to avoid boundig box brain fuck
+            img.Mutate(x => x.AutoOrient());
+            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+
+            // After AutoOrient exif is no longer needed
+            img.Metadata.ExifProfile = null;
+
+            // Resize for Azure long edge not greater then 1920
+            var azure = new ResizeOptions
+            {
+                Size = new Size(1920, 1920),
+                Mode = ResizeMode.Max,
+            };
+            var azureImg = img.Clone(x => x.Resize(azure));
+            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            System.Console.WriteLine($"x: {azureImg.Width} y: {azureImg.Height}");
+
+            //img.Save("for_azure.jpg");
+
+
+            // Resize for viewport
+            var viewport = new ResizeOptions
+            {
+                Size = new Size(1920, 1080),
+                Mode = ResizeMode.Max,
+            };
+            var viewportImg = img.Clone(x => x.Resize(viewport));
+            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            System.Console.WriteLine($"x: {viewportImg.Width} y: {viewportImg.Height}");
+
+            //img.Save("for_viewport.jpg");
         }
     }
 }
