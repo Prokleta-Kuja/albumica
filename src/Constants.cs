@@ -13,6 +13,7 @@ namespace albumica
         public static class Routes
         {
             public const string Root = "/";
+            public const string Resizer = "/img";
             public const string Images = "/images";
             public const string Invoices = "/invoices";
             public const string Invoice = "/invoices/{Id:int}";
