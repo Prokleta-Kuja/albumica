@@ -21,8 +21,11 @@ namespace albumica.Data
         public DateTime Created { get; set; }
         public string Hash { get; set; }
         public int? VideoId { get; set; }
+        public int? LocationId { get; set; }
 
         public ICollection<ImagePerson>? Persons { get; set; }
+        public ICollection<ImageTag>? Tags { get; set; }
         public Video? Video { get; set; }
+        public Location? Location { get; set; }
     }
 }
