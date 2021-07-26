@@ -4,15 +4,16 @@ namespace albumica.Data
 {
     public class Tag
     {
-        public Tag(string name)
+        public Tag(string title, string description)
         {
-            Name = name;
+            Title = title;
+            Description = description;
         }
-        public int TagId { get; set; }
-        public string Name { get; set; }
-        public TagCategory Category { get; set; }
-        public string? Metadata { get; set; }
 
-        public ICollection<ItemTag>? Items { get; set; }
+        public int TagId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+
+        public ICollection<ImageTag>? Images { get; set; }
     }
 }

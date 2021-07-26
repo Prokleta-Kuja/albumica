@@ -23,12 +23,13 @@ namespace albumica
         {
             var import = new DirectoryInfo(C.Settings.ImportRootPath); import.Create();
             var images = new DirectoryInfo(C.Settings.ImagesRootPath); images.Create();
+            var videos = new DirectoryInfo(C.Settings.VideosRootPath); videos.Create();
             var cache = new DirectoryInfo(C.Settings.CacheRootPath); cache.Create();
-            await Test2();
+            //await Test2();
             // await Test();
 
-            // await InitializeDb(args);
-            // CreateHostBuilder(args).Build().Run();
+            await InitializeDb(args);
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -53,7 +54,7 @@ namespace albumica
                 await db.Database.EnsureCreatedAsync();
 
             // Seed
-            if (Debugger.IsAttached && !db.Tags.Any())
+            if (Debugger.IsAttached && !db.Images.Any())
             {
                 await db.ProvisionDemoAsync();
             }
@@ -68,7 +69,7 @@ namespace albumica
             var import = new DirectoryInfo(C.Settings.ImportRootPath);
             var inputFile = import.GetFiles().First();
 
-            var info = Image.Identify(inputFile.FullName);
+            var info = SixLabors.ImageSharp.Image.Identify(inputFile.FullName);
             if (info == null)
             {
                 // TODO: this is video most likely
@@ -110,10 +111,12 @@ namespace albumica
             }
 
             // Resize and rotate
-            using var img = await Image.LoadAsync(inputFile.FullName);
-            var opt = new ResizeOptions();
-            opt.Size = new Size(500, 500);
-            opt.Mode = ResizeMode.Crop;
+            using var img = await SixLabors.ImageSharp.Image.LoadAsync(inputFile.FullName);
+            var opt = new ResizeOptions
+            {
+                Size = new Size(500, 500),
+                Mode = ResizeMode.Crop
+            };
             img.Mutate(x =>
             {
                 x.Resize(opt);
@@ -127,11 +130,11 @@ namespace albumica
         static async Task Test2()
         {
             await Task.CompletedTask;
-            var img = Image.Load("vt4.jpg");
+            var img = SixLabors.ImageSharp.Image.Load("vt4.jpg");
 
             // AutoOrient to avoid boundig box brain fuck
             img.Mutate(x => x.AutoOrient());
-            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            Console.WriteLine($"x: {img.Width} y: {img.Height}");
 
             // After AutoOrient exif is no longer needed
             img.Metadata.ExifProfile = null;
@@ -143,8 +146,8 @@ namespace albumica
                 Mode = ResizeMode.Max,
             };
             var azureImg = img.Clone(x => x.Resize(azure));
-            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
-            System.Console.WriteLine($"x: {azureImg.Width} y: {azureImg.Height}");
+            Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            Console.WriteLine($"x: {azureImg.Width} y: {azureImg.Height}");
 
             //img.Save("for_azure.jpg");
 
@@ -156,8 +159,8 @@ namespace albumica
                 Mode = ResizeMode.Max,
             };
             var viewportImg = img.Clone(x => x.Resize(viewport));
-            System.Console.WriteLine($"x: {img.Width} y: {img.Height}");
-            System.Console.WriteLine($"x: {viewportImg.Width} y: {viewportImg.Height}");
+            Console.WriteLine($"x: {img.Width} y: {img.Height}");
+            Console.WriteLine($"x: {viewportImg.Width} y: {viewportImg.Height}");
 
             //img.Save("for_viewport.jpg");
 

@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using albumica.Data;
+using albumica.Middlewares;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 namespace albumica
 {
     public class Startup
@@ -56,6 +53,7 @@ namespace albumica
             }
 
             app.UseStaticFiles();
+            app.UseImageResizer(C.Routes.Resizer, C.Settings.ImagesRootPath, C.Settings.CacheRootPath);
 
             app.UseRouting();
 

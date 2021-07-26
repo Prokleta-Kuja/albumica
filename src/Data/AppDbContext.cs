@@ -13,29 +13,71 @@ namespace albumica.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
-        public DbSet<Item> Items { get; set; } = null!;
-        public DbSet<ItemTag> ItemTags { get; set; } = null!;
+        public DbSet<City> Cities { get; set; } = null!;
+        public DbSet<Country> Countries { get; set; } = null!;
         public DbSet<Tag> Tags { get; set; } = null!;
+        public DbSet<Image> Images { get; set; } = null!;
+        public DbSet<ImagePerson> ImagePersons { get; set; } = null!;
+        public DbSet<ImageTag> ImageTags { get; set; } = null!;
+        public DbSet<Location> Locations { get; set; } = null!;
+        public DbSet<Person> People { get; set; } = null!;
+        public DbSet<Video> Videos { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<Item>(e =>
+            builder.Entity<City>(e =>
             {
-                e.HasKey(p => p.ItemId);
-                e.HasMany(p => p.Tags).WithOne(p => p.Item!);
+                e.HasKey(p => p.CityId);
+                e.HasOne(p => p.Country).WithMany(p => p!.Cities);
             });
 
-            builder.Entity<ItemTag>(e =>
+            builder.Entity<Country>(e =>
             {
-                e.HasKey(t => new { t.ItemId, t.TagId });
+                e.HasKey(p => p.CountryId);
             });
 
             builder.Entity<Tag>(e =>
             {
                 e.HasKey(p => p.TagId);
-                e.HasMany(p => p.Items).WithOne(p => p.Tag!);
+            });
+
+            builder.Entity<Image>(e =>
+            {
+                e.HasKey(p => p.ImageId);
+                e.HasOne(p => p.Video).WithOne(p => p!.Image!).HasForeignKey<Image>(p => p.VideoId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(p => p.Location).WithOne(p => p!.Image!).HasForeignKey<Image>(p => p.LocationId).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            builder.Entity<ImagePerson>(e =>
+            {
+                e.HasKey(p => new { p.ImageId, p.PersonId });
+                e.HasOne(p => p.Person).WithMany(p => p!.Images).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(p => p.Image).WithMany(p => p!.Persons).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<ImageTag>(e =>
+            {
+                e.HasKey(p => new { p.ImageId, p.TagId });
+                e.HasOne(p => p.Tag).WithMany(p => p!.Images).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(p => p.Image).WithMany(p => p!.Tags).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Location>(e =>
+            {
+                e.HasKey(p => p.LocationId);
+                e.HasOne(p => p.City).WithMany(p => p!.Locations);
+            });
+
+            builder.Entity<Person>(e =>
+            {
+                e.HasKey(p => p.PersonId);
+            });
+
+            builder.Entity<Video>(e =>
+            {
+                e.HasKey(p => p.VideoId);
             });
 
 
@@ -62,7 +104,6 @@ namespace albumica.Data
         }
         public async Task ProvisionDemoAsync()
         {
-            Tags.Add(new("Test"));
             await SaveChangesAsync();
         }
     }
