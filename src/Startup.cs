@@ -54,6 +54,7 @@ namespace albumica
 
             app.UseStaticFiles();
             app.UseImageResizer(C.Routes.Resizer, C.Settings.ImagesRootPath, C.Settings.CacheRootPath);
+            app.UseImageResizer(C.Routes.ResizerImport, C.Settings.ImportRootPath, C.Settings.CacheImportPath);
 
             app.UseRouting();
 

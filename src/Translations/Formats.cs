@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace albumica.Localization
+namespace albumica.Translations
 {
     public class Formats
     {

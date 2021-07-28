@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using Microsoft.Extensions.Options;
 
 namespace albumica.Middlewares
 {
@@ -152,6 +152,7 @@ namespace albumica.Middlewares
             FileInfo cacheFI;
             if (context.Request.Query.TryGetValue("w", out var w))
             {
+                // TODO: Ensure this doesn't throw
                 var width = Convert.ToInt32(w);
                 var height = context.Request.Query.TryGetValue("h", out var h) ? Convert.ToInt32(h) : width;
                 var crop = context.Request.Query.TryGetValue("c", out var _);

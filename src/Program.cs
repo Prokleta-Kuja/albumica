@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -7,9 +6,7 @@ using System.Threading.Tasks;
 using albumica.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
@@ -21,13 +18,10 @@ namespace albumica
     {
         public static async Task Main(string[] args)
         {
-            var import = new DirectoryInfo(C.Settings.ImportRootPath); import.Create();
-            var images = new DirectoryInfo(C.Settings.ImagesRootPath); images.Create();
-            var videos = new DirectoryInfo(C.Settings.VideosRootPath); videos.Create();
-            var cache = new DirectoryInfo(C.Settings.CacheRootPath); cache.Create();
             //await Test2();
             // await Test();
 
+            InitializeDirectories();
             await InitializeDb(args);
             CreateHostBuilder(args).Build().Run();
         }
@@ -38,6 +32,18 @@ namespace albumica
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+        static void InitializeDirectories()
+        {
+            var import = new DirectoryInfo(C.Settings.ImportRootPath); import.Create();
+            var images = new DirectoryInfo(C.Settings.ImagesRootPath); images.Create();
+            var videos = new DirectoryInfo(C.Settings.VideosRootPath); videos.Create();
+
+            var cache = new DirectoryInfo(C.Settings.CacheRootPath); cache.Create();
+            var cacheImport = new DirectoryInfo(C.Settings.CacheImportPath); cacheImport.Create();
+
+            foreach (var file in cache.EnumerateFiles("*", SearchOption.AllDirectories)) file.Delete();
+        }
 
         static async Task InitializeDb(string[] args)
         {

@@ -1,6 +1,6 @@
 using System;
 
-namespace albumica.Localization
+namespace albumica.Translations
 {
     public static class LocalizationFactory
     {
@@ -14,13 +14,13 @@ namespace albumica.Localization
 
             return new Standard_en();
         }
-        // public static INavigation Navigation() => Navigation(C.Env.Locale);
-        // public static INavigation Navigation(string locale)
-        // {
-        //     if (locale.StartsWith("hr"))
-        //         return new Navigation_hr();
+        public static IImport Import() => Import(C.Env.Locale);
+        public static IImport Import(string locale)
+        {
+            if (locale.StartsWith("hr"))
+                return new Import_hr();
 
-        //     return new Navigation_en();
-        // }
+            return new Import_en();
+        }
     }
 }

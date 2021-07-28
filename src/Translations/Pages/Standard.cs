@@ -1,4 +1,4 @@
-namespace albumica.Localization
+namespace albumica.Translations
 {
     public interface IStandard
     {

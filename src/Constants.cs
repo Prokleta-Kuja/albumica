@@ -14,6 +14,8 @@ namespace albumica
         {
             public const string Root = "/";
             public const string Resizer = "/img";
+            public const string ResizerImport = "/img-import";
+            public const string Import = "/import";
             public const string Images = "/images";
             public const string Invoices = "/invoices";
             public const string Invoice = "/invoices/{Id:int}";
@@ -26,6 +28,7 @@ namespace albumica
             public static readonly string ImagesRootPath = DataPath("images");
             public static readonly string VideosRootPath = DataPath("videos");
             public static readonly string CacheRootPath = DataPath("cache");
+            public static readonly string CacheImportPath = Path.Combine(CacheRootPath, "import");
             public static string ImagesForPath(int year, int month) => DataPath($"images/{year}/{month}");
             public static readonly string AppDbConnectionString = $"Data Source={DataPath("app.db")}";
         }
