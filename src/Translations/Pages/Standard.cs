@@ -2,6 +2,7 @@ namespace albumica.Translations
 {
     public interface IStandard
     {
+        string Loading { get; }
         string Search { get; }
         string Year { get; }
         string Month { get; }
@@ -20,6 +21,7 @@ namespace albumica.Translations
     }
     public class Standard_en : IStandard
     {
+        public string Loading => "Loading...";
         public string Search => "Search";
         public string Year => "Year";
         public string Month => "Month";
@@ -38,6 +40,7 @@ namespace albumica.Translations
     }
     public class Standard_hr : IStandard
     {
+        public string Loading => "Učitavam...";
         public string Search => "Traži";
         public string Year => "Godina";
         public string Month => "Mjesec";

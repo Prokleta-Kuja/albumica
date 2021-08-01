@@ -15,5 +15,6 @@ namespace albumica.Data
         public string Code { get; set; }
 
         public ICollection<City>? Cities { get; set; }
+        public ICollection<Location>? Locations { get; set; }
     }
 }

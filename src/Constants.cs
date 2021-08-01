@@ -15,6 +15,7 @@ namespace albumica
             public const string Root = "/";
             public const string Resizer = "/img";
             public const string ResizerImport = "/img-import";
+            public static string ResizerImportFor(string relativePath) => $"{ResizerImport}/{relativePath}";
             public const string Import = "/import";
             public const string Images = "/images";
             public const string Invoices = "/invoices";

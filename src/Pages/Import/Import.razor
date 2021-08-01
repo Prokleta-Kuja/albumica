@@ -1,0 +1,41 @@
+@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.Import)]
+
+@if(Current == null)
+{
+    @_t.Loading
+}
+else
+{
+    <div class="row min-vh-100 m-0">
+        <Preview Model=Current />
+        <div class="col-md-6 col-sm-12">
+            <h1>@_t.PageTitle</h1>
+            <div class="accordion" id="import-accordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="location">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#location-content" aria-expanded="true" aria-controls="location-content">
+                            @_t.Location
+                        </button>
+                    </h2>
+                    <div id="location-content" class="accordion-collapse collapse show" aria-labelledby="location">
+                        <div class="accordion-body">
+                            <Location Model=Current />
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="persons">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#persons-content" aria-expanded="true" aria-controls="persons-content">
+                            @_t.Persons
+                        </button>
+                    </h2>
+                    <div id="persons-content" class="accordion-collapse collapse show" aria-labelledby="persons">
+                        <div class="accordion-body">
+                            <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                        </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

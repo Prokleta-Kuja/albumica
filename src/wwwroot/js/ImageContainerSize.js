@@ -3,7 +3,8 @@ let elementId, dotNet, timeout;
 export function initialize(dotNetObj, elId) {
     dotNet = dotNetObj;
     elementId = elId;
-    reportElementSize()
+
+    setTimeout(reportElementSize, 1000);
 }
 
 function reportElementSize() {

@@ -1,25 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using albumica.Data;
+using albumica.Models;
 using albumica.Translations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
 
-namespace albumica.Pages
+namespace albumica.Pages.Import
 {
-    public partial class Import : IDisposable
+    public partial class Preview : IDisposable
     {
         const string IMAGE_IMPORT = nameof(IMAGE_IMPORT);
-        [Inject] private AppDbContext Db { get; set; } = null!;
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-        private DotNetObjectReference<Import>? ThisRef;
-        private IJSObjectReference? ElementSizeRef;
+        [Parameter] public ImportImageModel? Model { get; set; }
         private readonly IImport _t = LocalizationFactory.Import();
-
-        private string CurrentImagePath = "img-import/IMG_20210714_073839.jpg";
-        private string CurrentImageUri = "";
+        private DotNetObjectReference<Preview>? ThisRef;
+        private IJSObjectReference? ElementSizeRef;
+        private string CurrentImageUri = string.Empty;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -31,6 +29,7 @@ namespace albumica.Pages
                 await ElementSizeRef.InvokeVoidAsync("initialize", ThisRef, IMAGE_IMPORT);
             }
         }
+
         public void Dispose()
         {
             if (ThisRef != null)
@@ -38,10 +37,11 @@ namespace albumica.Pages
             if (ElementSizeRef != null)
                 ElementSizeRef.DisposeAsync().GetAwaiter();
         }
+
         [JSInvokable]
         public void ElementChanged(double width, double height, double devicePixelRatio = 1)
         {
-            if (width == 0 || height == 0)
+            if (Model == null || width == 0 || height == 0)
                 return;
 
             var w = (int)(width * devicePixelRatio);
@@ -52,7 +52,7 @@ namespace albumica.Pages
                 { "h", h.ToString() },
             };
 
-            CurrentImageUri = QueryHelpers.AddQueryString(CurrentImagePath, qs);
+            CurrentImageUri = QueryHelpers.AddQueryString(Model.Uri, qs);
             StateHasChanged();
         }
     }

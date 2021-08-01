@@ -15,6 +15,7 @@ namespace albumica.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
         public DbSet<City> Cities { get; set; } = null!;
         public DbSet<Country> Countries { get; set; } = null!;
+        public DbSet<Suburb> Suburbs { get; set; } = null!;
         public DbSet<Tag> Tags { get; set; } = null!;
         public DbSet<Image> Images { get; set; } = null!;
         public DbSet<ImagePerson> ImagePersons { get; set; } = null!;
@@ -36,6 +37,12 @@ namespace albumica.Data
             builder.Entity<Country>(e =>
             {
                 e.HasKey(p => p.CountryId);
+            });
+
+            builder.Entity<Suburb>(e =>
+            {
+                e.HasKey(p => p.SuburbId);
+                e.HasOne(p => p.City).WithMany(p => p!.Suburbs);
             });
 
             builder.Entity<Tag>(e =>
@@ -67,7 +74,9 @@ namespace albumica.Data
             builder.Entity<Location>(e =>
             {
                 e.HasKey(p => p.LocationId);
-                e.HasOne(p => p.City).WithMany(p => p!.Locations);
+                e.HasOne(p => p.Country).WithMany(p => p!.Locations).HasForeignKey(p => p.CountryId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(p => p.City).WithMany(p => p!.Locations).HasForeignKey(p => p.CityId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(p => p.Suburb).WithMany(p => p!.Locations).HasForeignKey(p => p.SuburbId).OnDelete(DeleteBehavior.SetNull);
             });
 
             builder.Entity<Person>(e =>

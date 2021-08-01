@@ -1,0 +1,31 @@
+@if(CurrentLocation != null)
+{
+    <div class="row g-3">
+        <div class="col">
+            <select class="form-select" aria-label=@_t.Country @bind=CurrentLocation.CountryId>
+                <option selected=@(!CurrentLocation.CountryId.HasValue) disabled>@_t.Country</option>
+                @foreach (var country in Countries)
+                {
+                    <option value=@country.Value.CountryId>@country.Value.Code - @country.Value.Name</option>
+                }
+            </select>
+            <select class="form-select" aria-label=@_t.Suburb @bind=CurrentLocation.SuburbId>
+                <option selected=@(!CurrentLocation.SuburbId.HasValue) disabled>@_t.Suburb</option>
+                @foreach (var suburb in Suburbs)
+                {
+                    <option value=@suburb.Value.SuburbId>@suburb.Value.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col">            
+            <select class="form-select" aria-label=@_t.City @bind=CurrentLocation.CityId>
+                <option selected=@(!CurrentLocation.CityId.HasValue) disabled>@_t.City</option>
+                @foreach (var city in Cities)
+                {
+                    <option value=@city.Value.CityId>@city.Value.Name</option>
+                }
+            </select>
+<button class="btn btn-primary" @onclick=ImageChanged>Detect</button>
+        </div>
+    </div>
+}
