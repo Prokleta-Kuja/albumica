@@ -6,6 +6,7 @@ using albumica.Translations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
+using SixLabors.ImageSharp.Processing;
 
 namespace albumica.Pages.Import
 {
@@ -13,11 +14,15 @@ namespace albumica.Pages.Import
     {
         const string IMAGE_IMPORT = nameof(IMAGE_IMPORT);
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-        [Parameter] public ImportImageModel? Model { get; set; }
         private readonly IImport _t = LocalizationFactory.Import();
         private DotNetObjectReference<Preview>? ThisRef;
         private IJSObjectReference? ElementSizeRef;
+        private string CurrentImageOriginalUri = string.Empty;
         private string CurrentImageUri = string.Empty;
+        private int Width;
+        private int Height;
+        private int ViewPortWidth;
+        private double DevicePixelRatio = 1;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -37,23 +42,42 @@ namespace albumica.Pages.Import
             if (ElementSizeRef != null)
                 ElementSizeRef.DisposeAsync().GetAwaiter();
         }
-
-        [JSInvokable]
-        public void ElementChanged(double width, double height, double devicePixelRatio = 1)
+        public void ChangeImage(ImportImageModel model)
         {
-            if (Model == null || width == 0 || height == 0)
+            CurrentImageOriginalUri = model.Uri;
+            ChangeImageUri();
+        }
+        private void ChangeImageUri()
+        {
+            if (string.IsNullOrWhiteSpace(CurrentImageOriginalUri) || Width == 0 || Height == 0)
                 return;
 
-            var w = (int)(width * devicePixelRatio);
-            var h = (int)(height * devicePixelRatio);
+            var w = (int)(Width * DevicePixelRatio);
+            var h = (int)(Height * DevicePixelRatio);
+            var mode = ViewPortWidth < 768 ? ResizeMode.Min : ResizeMode.Max;
 
             var qs = new Dictionary<string, string?>{
                 { "w", w.ToString() },
-                { "h", h.ToString() },
             };
 
-            CurrentImageUri = QueryHelpers.AddQueryString(Model.Uri, qs);
+            if (mode == ResizeMode.Max)
+                qs.Add("h", h.ToString());
+            else
+                qs.Add("m", mode.ToString());
+
+            CurrentImageUri = QueryHelpers.AddQueryString(CurrentImageOriginalUri, qs);
             StateHasChanged();
+        }
+
+        [JSInvokable]
+        public void ElementChanged(int width, int height, int viewPortWidth, double devicePixelRatio = 1)
+        {
+            Width = width;
+            Height = height;
+            ViewPortWidth = viewPortWidth;
+            DevicePixelRatio = devicePixelRatio;
+
+            ChangeImageUri();
         }
     }
 }

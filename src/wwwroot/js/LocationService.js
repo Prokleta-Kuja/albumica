@@ -7,7 +7,7 @@ export function initialize(dotNetObj) {
 export async function reverseGeoCode(uri) {
     result = {};
 
-    await fetch(uri)
+    await fetch(uri, { referrer: "" })
         .then(response => response.json())
         .catch(er => console.error(er))
         .then(data => {

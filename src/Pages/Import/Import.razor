@@ -1,41 +1,45 @@
 @attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.Import)]
 
-@if(Current == null)
-{
-    @_t.Loading
-}
-else
-{
-    <div class="row min-vh-100 m-0">
-        <Preview Model=Current />
-        <div class="col-md-6 col-sm-12">
-            <h1>@_t.PageTitle</h1>
-            <div class="accordion" id="import-accordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="location">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#location-content" aria-expanded="true" aria-controls="location-content">
-                            @_t.Location
-                        </button>
-                    </h2>
-                    <div id="location-content" class="accordion-collapse collapse show" aria-labelledby="location">
-                        <div class="accordion-body">
-                            <Location Model=Current />
-                        </div>
+<div class="row min-vh-100 m-0">
+    <Preview @ref=Preview />
+    <div class="col-md-6 col-sm-12">
+        <h1>@_t.PageTitle</h1>
+        <div class="row g-1 mb-1">
+            <div class="col-xs-12 col-sm-4">
+                <button class="btn btn-danger w-100">@_t.Delete</button>
+            </div>
+            <div class="col-xs-12 col-sm-4">
+                <button class="btn btn-warning w-100" @onclick=Skip>@_t.Skip</button>
+            </div>
+            <div class="col-xs-12 col-sm-4">
+                <button class="btn btn-success w-100" @onclick=ImportImage>@_t.ImportImage</button>
+            </div>
+        </div>
+        <div class="accordion" id="import-accordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="location">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#location-content" aria-expanded="true" aria-controls="location-content">
+                        @_t.Location
+                    </button>
+                </h2>
+                <div id="location-content" class="accordion-collapse collapse show" aria-labelledby="location">
+                    <div class="accordion-body">
+                        <Location @ref=Location />
                     </div>
                 </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="persons">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#persons-content" aria-expanded="true" aria-controls="persons-content">
-                            @_t.Persons
-                        </button>
-                    </h2>
-                    <div id="persons-content" class="accordion-collapse collapse show" aria-labelledby="persons">
-                        <div class="accordion-body">
-                            <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                        </div>
-                        </div>
-                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="persons">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#persons-content" aria-expanded="true" aria-controls="persons-content">
+                        @_t.Persons
+                    </button>
+                </h2>
+                <div id="persons-content" class="accordion-collapse collapse show" aria-labelledby="persons">
+                    <div class="accordion-body">
+                        <Persons @ref=Persons />
+                    </div>
+                    </div>
             </div>
         </div>
     </div>
-}
+</div>

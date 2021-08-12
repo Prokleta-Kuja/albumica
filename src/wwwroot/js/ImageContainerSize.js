@@ -11,7 +11,9 @@ function reportElementSize() {
     let el = document.getElementById(elementId);
     if (el) {
         el.childNodes[0].src = "";
-        dotNet.invokeMethodAsync("ElementChanged", el.clientWidth, el.clientHeight, window.devicePixelRatio);
+        let vw = document.documentElement.clientWidth;
+        let dpr = window.devicePixelRatio;
+        dotNet.invokeMethodAsync("ElementChanged", el.clientWidth, el.clientHeight, vw, dpr);
     }
 }
 
