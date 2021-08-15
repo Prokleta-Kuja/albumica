@@ -14,6 +14,22 @@ namespace albumica.Translations
 
             return new Standard_en();
         }
+        public static INavigation Navigation() => Navigation(C.Env.Locale);
+        public static INavigation Navigation(string locale)
+        {
+            if (locale.StartsWith("hr"))
+                return new Navigation_hr();
+
+            return new Navigation_en();
+        }
+        public static ILocations Locations() => Locations(C.Env.Locale);
+        public static ILocations Locations(string locale)
+        {
+            if (locale.StartsWith("hr"))
+                return new Locations_hr();
+
+            return new Locations_en();
+        }
         public static IImport Import() => Import(C.Env.Locale);
         public static IImport Import(string locale)
         {

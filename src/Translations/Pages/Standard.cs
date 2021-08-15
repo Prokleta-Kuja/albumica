@@ -18,6 +18,8 @@ namespace albumica.Translations
         string Enable { get; }
         string Disable { get; }
         string NotFound { get; }
+        string ValidationRequired { get; }
+        string ValidationDuplicate { get; }
     }
     public class Standard_en : IStandard
     {
@@ -37,6 +39,8 @@ namespace albumica.Translations
         public string Enable => "Enable";
         public string Disable => "Disable";
         public string NotFound => "Not found.";
+        public string ValidationRequired => "Required";
+        public string ValidationDuplicate => "Duplicate";
     }
     public class Standard_hr : IStandard
     {
@@ -56,5 +60,7 @@ namespace albumica.Translations
         public string Enable => "Omogući";
         public string Disable => "Onemogući";
         public string NotFound => "Nema.";
+        public string ValidationRequired => "Obavezno";
+        public string ValidationDuplicate => "Duplikat";
     }
 }

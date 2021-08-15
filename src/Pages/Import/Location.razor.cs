@@ -18,7 +18,6 @@ namespace albumica.Pages.Import
     {
         [Inject] private AppDbContext Db { get; set; } = null!;
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
-        [Parameter] public ImportImageModel? Model { get; set; }
         private readonly IImport _t = LocalizationFactory.Import();
         private DotNetObjectReference<Location>? ThisRef;
         private IJSObjectReference? LocationService;
@@ -27,7 +26,13 @@ namespace albumica.Pages.Import
         private Dictionary<string, City> Cities = new();
         private Dictionary<string, Suburb> Suburbs = new();
 
-        private Data.Location? CurrentLocation;
+
+        ExifTag[] CoordinateKeys = new ExifTag[] { ExifTag.GPSLatitudeRef, ExifTag.GPSLatitude, ExifTag.GPSLongitude };
+        ExifTag[] AltitudeKeys = new ExifTag[] { ExifTag.GPSAltitude, ExifTag.GPSAltitudeRef };
+
+        private bool Loading = true;
+        private bool HasGpsCoordinates;
+        private Data.Location CurrentLocation = new();
         private GeoCodeModel? CurrentGeoCode;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -37,11 +42,10 @@ namespace albumica.Pages.Import
                 ThisRef = DotNetObjectReference.Create(this);
                 LocationService = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/LocationService.js");
 
-                await LocationService.InvokeVoidAsync("initialize", ThisRef);
-
                 await LoadLocations();
 
-                await ImageChanged();
+                await LocationService.InvokeVoidAsync("initialize", ThisRef);
+                Loading = false;
             }
         }
 
@@ -70,7 +74,7 @@ namespace albumica.Pages.Import
         }
         private async Task ReverseGeoCode()
         {
-            if (LocationService == null || CurrentLocation == null)
+            if (LocationService == null)
                 return;
 
             var baseUri = $"https://nominatim.openstreetmap.org/reverse";
@@ -96,7 +100,7 @@ namespace albumica.Pages.Import
                         CurrentLocation.Country = Countries[CurrentGeoCode.Country];
                     else
                     {
-                        var newCountry = new Country(CurrentGeoCode.Country, CurrentGeoCode.CountryCode!.ToUpper());
+                        var newCountry = new Country(CurrentGeoCode.Country, CurrentGeoCode.CountryCode!.ToUpper(), CurrentGeoCode.Country);
                         Db.Countries.Add(newCountry);
                         await Db.SaveChangesAsync();
 
@@ -113,7 +117,7 @@ namespace albumica.Pages.Import
                         CurrentLocation.City = Cities[CurrentGeoCode.City];
                     else
                     {
-                        var newCity = new City(CurrentGeoCode.City);
+                        var newCity = new City(CurrentGeoCode.City, CurrentGeoCode.City);
                         newCity.CountryId = CurrentLocation.CountryId!.Value;
                         Db.Cities.Add(newCity);
                         await Db.SaveChangesAsync();
@@ -131,7 +135,7 @@ namespace albumica.Pages.Import
                         CurrentLocation.Suburb = Suburbs[CurrentGeoCode.Suburb];
                     else
                     {
-                        var newSuburb = new Suburb(CurrentGeoCode.Suburb);
+                        var newSuburb = new Suburb(CurrentGeoCode.Suburb, CurrentGeoCode.Suburb);
                         newSuburb.CityId = CurrentLocation.CityId!.Value;
                         Db.Suburbs.Add(newSuburb);
                         await Db.SaveChangesAsync();
@@ -142,26 +146,28 @@ namespace albumica.Pages.Import
                     CurrentLocation.SuburbId = CurrentLocation.Suburb.SuburbId;
                 }
             }
+            else
+            {
+                //TODO: handle reverse geocode fail
+            }
+
             if (newData)
                 await LoadLocations();
-            else
-                StateHasChanged();
         }
-        public async Task ImageChanged()
+        public async Task ChangeImage(ImportImageModel model)
         {
+            Loading = true;
+            HasGpsCoordinates = false;
             CurrentLocation = new();
-            if (Model == null)
-                return;
+            StateHasChanged();
 
-            var info = SixLabors.ImageSharp.Image.Identify(Model.FullName);
+            var info = SixLabors.ImageSharp.Image.Identify(model.FullName);
             if (info == null)
                 return; // TODO: this is video most likely
 
             var exif = info.Metadata.ExifProfile.Values.ToDictionary(m => m.Tag);
-            var coordinateKeys = new ExifTag[] { ExifTag.GPSLatitudeRef, ExifTag.GPSLatitude, ExifTag.GPSLongitude };
-            var altitudeKeys = new ExifTag[] { ExifTag.GPSAltitude, ExifTag.GPSAltitudeRef };
 
-            if (coordinateKeys.All(k => exif.ContainsKey(k)))
+            if (CoordinateKeys.All(k => exif.ContainsKey(k)))
             {
                 var lat = exif[ExifTag.GPSLatitude].GetValue() as Rational[];
                 var lon = exif[ExifTag.GPSLongitude].GetValue() as Rational[];
@@ -173,6 +179,12 @@ namespace albumica.Pages.Import
                     var latitude = lat[0].ToDouble() + (lat[1].ToDouble() / 60) + (lat[2].ToDouble() / 3600);
                     if (latRef.ToString()!.Equals("S", StringComparison.InvariantCultureIgnoreCase))
                         latitude *= -1;
+
+                    CurrentLocation.Latitude = latitude;
+                    CurrentLocation.Longitude = longitude;
+
+                    await ReverseGeoCode();
+                    HasGpsCoordinates = true;
 
                     // Extract altitude
                     // if (altitudeKeys.All(k => exif.ContainsKey(k)))
@@ -186,13 +198,11 @@ namespace albumica.Pages.Import
 
                     //     // Use here
                     // }
-
-                    CurrentLocation.Latitude = latitude;
-                    CurrentLocation.Longitude = longitude;
-
-                    await ReverseGeoCode();
                 }
             }
+
+            Loading = false;
+            StateHasChanged();
         }
     }
 }

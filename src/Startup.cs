@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using albumica.Configuration;
 using albumica.Data;
+using albumica.FaceRecognition;
 using albumica.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -25,6 +27,10 @@ namespace albumica
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<AiOptions>(Configuration.GetSection(AiOptions.Section));
+            services.AddTransient<IFaceRecogniton, NoFaceRecognition>();
+            services.AddHttpClient();
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddDbContext<AppDbContext>(builder =>

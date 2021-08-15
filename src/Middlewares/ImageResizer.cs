@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using albumica.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
@@ -11,25 +12,6 @@ using SixLabors.ImageSharp.Processing;
 
 namespace albumica.Middlewares
 {
-    public class ImageResizerOptions
-    {
-        public ImageResizerOptions()
-        {
-            MathUrlPrefix = null!;
-            ImageRootDir = null!;
-            CacheRootDir = null!;
-        }
-        public ImageResizerOptions(string mathUrlPrefix, string imageRootDir, string? cacheRootDir = null)
-        {
-            MathUrlPrefix = mathUrlPrefix;
-            ImageRootDir = imageRootDir;
-            CacheRootDir = cacheRootDir ?? Path.GetTempPath();
-        }
-
-        public string MathUrlPrefix { get; set; }
-        public string ImageRootDir { get; set; }
-        public string CacheRootDir { get; set; }
-    }
     public static class ImageResizerExtensions
     {
         public static IApplicationBuilder UseImageResizer(this IApplicationBuilder app)
@@ -152,14 +134,14 @@ namespace albumica.Middlewares
             FileInfo cacheFI;
             if (context.Request.Query.TryGetValue("w", out var w))
             {
-                // TODO: Ensure this doesn't throw
+                // TODO: Ensure this can't throw
                 var width = Convert.ToInt32(w);
                 var height = context.Request.Query.TryGetValue("h", out var h) ? Convert.ToInt32(h) : width;
-                var crop = context.Request.Query.TryGetValue("c", out var _);
+                var mode = context.Request.Query.TryGetValue("m", out var m) ? Enum.Parse<ResizeMode>(m) : ResizeMode.Max;
 
                 var fileName = Path.GetFileNameWithoutExtension(imgSubPath);
                 var fileExt = Path.GetExtension(imgSubPath);
-                var cacheFullName = $"{fileName}_{width}_{height}_{(crop ? "c" : string.Empty)}{fileExt}";
+                var cacheFullName = $"{fileName}_{width}_{height}_{mode}{fileExt}";
 
                 var cachePath = Path.Combine(_cacheRootDir, cacheFullName);
                 cacheFI = new FileInfo(cachePath);
@@ -169,7 +151,7 @@ namespace albumica.Middlewares
                     var viewport = new ResizeOptions
                     {
                         Size = new Size(width, height),
-                        Mode = crop ? ResizeMode.Crop : ResizeMode.Max,
+                        Mode = mode,
                     };
                     img.Mutate(x => x.AutoOrient().Resize(viewport));
                     await img.SaveAsync(cacheFI.FullName);

@@ -69,9 +69,10 @@ namespace albumica
         static async Task Test()
         {
             // TODO: Call as startup
-            Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+            var conf = SixLabors.ImageSharp.Configuration.Default;
+            conf.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
             // TODO: call daily at night
-            Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+            conf.MemoryAllocator.ReleaseRetainedResources();
 
             var import = new DirectoryInfo(C.Settings.ImportRootPath);
             var inputFile = import.GetFiles().First();

@@ -56,5 +56,12 @@ namespace albumica.Translations
 
             return num.Value.ToString($"#,##0.{new string('0', places)}", Culture!.NumberFormat);
         }
+        public string Display(int? num, string empty = "-")
+        {
+            if (!num.HasValue)
+                return empty;
+
+            return num.Value.ToString("#,##0", Culture!.NumberFormat);
+        }
     }
 }
