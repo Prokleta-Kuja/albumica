@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -8,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace albumica.Data
 {
-    public class AppDbContext : DbContext, IDataProtectionKeyContext
+    public partial class AppDbContext : DbContext, IDataProtectionKeyContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -89,6 +88,7 @@ namespace albumica.Data
                 e.HasKey(p => p.VideoId);
             });
 
+            AddQueries(builder);
 
             foreach (var entityType in builder.Model.GetEntityTypes())
             {

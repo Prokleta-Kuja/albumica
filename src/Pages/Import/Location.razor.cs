@@ -100,7 +100,7 @@ namespace albumica.Pages.Import
                         CurrentLocation.Country = Countries[CurrentGeoCode.Country];
                     else
                     {
-                        var newCountry = new Country(CurrentGeoCode.Country, CurrentGeoCode.CountryCode!.ToUpper());
+                        var newCountry = new Country(CurrentGeoCode.Country, CurrentGeoCode.CountryCode!.ToUpper(), CurrentGeoCode.Country);
                         Db.Countries.Add(newCountry);
                         await Db.SaveChangesAsync();
 
@@ -117,7 +117,7 @@ namespace albumica.Pages.Import
                         CurrentLocation.City = Cities[CurrentGeoCode.City];
                     else
                     {
-                        var newCity = new City(CurrentGeoCode.City);
+                        var newCity = new City(CurrentGeoCode.City, CurrentGeoCode.City);
                         newCity.CountryId = CurrentLocation.CountryId!.Value;
                         Db.Cities.Add(newCity);
                         await Db.SaveChangesAsync();
@@ -135,7 +135,7 @@ namespace albumica.Pages.Import
                         CurrentLocation.Suburb = Suburbs[CurrentGeoCode.Suburb];
                     else
                     {
-                        var newSuburb = new Suburb(CurrentGeoCode.Suburb);
+                        var newSuburb = new Suburb(CurrentGeoCode.Suburb, CurrentGeoCode.Suburb);
                         newSuburb.CityId = CurrentLocation.CityId!.Value;
                         Db.Suburbs.Add(newSuburb);
                         await Db.SaveChangesAsync();
