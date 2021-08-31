@@ -20,7 +20,7 @@ namespace albumica
         {
             //await Test2();
             // await Test();
-            TestVideo.GetMeta("./VID_20210815_124520.mp4");
+            // TestVideo.GetMeta("./VID_20210815_124520.mp4");
 
             InitializeDirectories();
             await InitializeDb(args);

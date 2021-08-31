@@ -22,6 +22,14 @@ namespace albumica.Translations
 
             return new Navigation_en();
         }
+        public static IPeople People() => People(C.Env.Locale);
+        public static IPeople People(string locale)
+        {
+            if (locale.StartsWith("hr"))
+                return new People_hr();
+
+            return new People_en();
+        }
         public static ILocations Locations() => Locations(C.Env.Locale);
         public static ILocations Locations(string locale)
         {

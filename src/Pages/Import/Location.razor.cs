@@ -23,8 +23,8 @@ namespace albumica.Pages.Import
         private IJSObjectReference? LocationService;
 
         private Dictionary<string, Country> Countries = new();
-        private Dictionary<string, City> Cities = new();
-        private Dictionary<string, Suburb> Suburbs = new();
+        private List<City> Cities = new();
+        private List<Suburb> Suburbs = new();
 
 
         ExifTag[] CoordinateKeys = new ExifTag[] { ExifTag.GPSLatitudeRef, ExifTag.GPSLatitude, ExifTag.GPSLongitude };
@@ -64,11 +64,11 @@ namespace albumica.Pages.Import
 
             Cities = await Db.Cities
                 .OrderBy(c => c.Name)
-                .ToDictionaryAsync(c => c.Name);
+                .ToListAsync();
 
             Suburbs = await Db.Suburbs
                 .OrderBy(c => c.Name)
-                .ToDictionaryAsync(c => c.Name);
+                .ToListAsync();
 
             StateHasChanged();
         }
@@ -113,9 +113,8 @@ namespace albumica.Pages.Import
                 // City
                 if (!string.IsNullOrWhiteSpace(CurrentGeoCode.City))
                 {
-                    if (Cities.ContainsKey(CurrentGeoCode.City))
-                        CurrentLocation.City = Cities[CurrentGeoCode.City];
-                    else
+                    CurrentLocation.City = Cities.FirstOrDefault(c => c.Name.Equals(CurrentGeoCode.City, StringComparison.InvariantCultureIgnoreCase) && c.CountryId == CurrentLocation.CountryId);
+                    if (CurrentLocation.City == null)
                     {
                         var newCity = new City(CurrentGeoCode.City, CurrentGeoCode.City);
                         newCity.CountryId = CurrentLocation.CountryId!.Value;
@@ -131,9 +130,8 @@ namespace albumica.Pages.Import
                 // Suburb
                 if (!string.IsNullOrWhiteSpace(CurrentGeoCode.Suburb))
                 {
-                    if (Suburbs.ContainsKey(CurrentGeoCode.Suburb))
-                        CurrentLocation.Suburb = Suburbs[CurrentGeoCode.Suburb];
-                    else
+                    CurrentLocation.Suburb = Suburbs.FirstOrDefault(c => c.Name.Equals(CurrentGeoCode.Suburb, StringComparison.InvariantCultureIgnoreCase) && c.CityId == CurrentLocation.CityId);
+                    if (CurrentLocation.Suburb == null)
                     {
                         var newSuburb = new Suburb(CurrentGeoCode.Suburb, CurrentGeoCode.Suburb);
                         newSuburb.CityId = CurrentLocation.CityId!.Value;

@@ -97,7 +97,7 @@ namespace albumica.Translations
         public string SuburbEditTitle => "Izmijeni četvrt";
         public string SuburbCity => "Grad";
         public string SuburbName => "Naziv četvrti";
-        public string SuburbDisplayName => "Naziv četvrti";
+        public string SuburbDisplayName => "Naziv četvrti za prikaz";
         public string SuburbTableName => "Četvrt";
         public string SuburbTableCountry => "Država";
         public string SuburbTableCity => "Grad";

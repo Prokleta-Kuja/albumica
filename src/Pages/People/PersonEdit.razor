@@ -1,0 +1,33 @@
+@using Models
+@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.Person)]
+
+@if (_create != null)
+{
+    <legend>@_t.AddTitle</legend>
+    <form @onsubmit=SaveCreateClicked>
+        <TextBox For=@nameof(PersonCreateModel.Name) Label=@_t.Name @bind-Value=_create.Name Errors=_errors Required AutoFocus />
+        <TextBox For=@nameof(PersonCreateModel.FirstName) Label=@_t.FirstName @bind-Value=_create.FirstName Errors=_errors />
+        <TextBox For=@nameof(PersonCreateModel.LastName) Label=@_t.LastName @bind-Value=_create.LastName Errors=_errors />
+        <DateTimeBox For=@nameof(PersonCreateModel.DateOfBirth) Label=@_t.DateOfBirth @bind-Value=_create.DateOfBirth Errors=_errors />
+        
+        <button type="submit" class="btn btn-primary">@_t.Save</button>
+        <button type="button" class="btn btn-outline-danger" @onclick=CancelClicked>@_t.Cancel</button>
+    </form>
+}
+else if(_edit != null)
+{
+    <legend>@_t.EditTitle @_edit.Name</legend>
+    <form @onsubmit=SaveEditClicked>
+        <TextBox For=@nameof(PersonEditModel.Name) Label=@_t.Name @bind-Value=_edit.Name Errors=_errors Required AutoFocus />
+        <TextBox For=@nameof(PersonEditModel.FirstName) Label=@_t.FirstName @bind-Value=_edit.FirstName Errors=_errors />
+        <TextBox For=@nameof(PersonEditModel.LastName) Label=@_t.LastName @bind-Value=_edit.LastName Errors=_errors />
+        <DateTimeBox For=@nameof(PersonEditModel.DateOfBirth) Label=@_t.DateOfBirth @bind-Value=_edit.DateOfBirth Errors=_errors />
+
+        <button type="submit" class="btn btn-primary">@_t.SaveChanges</button>
+        <button type="button" class="btn btn-outline-danger" @onclick=CancelClicked>@_t.Cancel</button>
+    </form>
+}
+else
+{
+    <text>@_t.NotFound</text>
+}

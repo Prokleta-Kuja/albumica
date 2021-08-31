@@ -6,7 +6,7 @@
                 <option selected value="" disabled>@_t.Country</option>
                 @foreach (var country in Countries)
                 {
-                    <option value=@country.Value.CountryId>@country.Value.Code - @country.Value.Name</option>
+                    <option value=@country.Value.CountryId>@country.Value.Code - @country.Value.DisplayName</option>
                 }
             </select>
         </div>
@@ -15,7 +15,7 @@
                 <option selected value="" disabled>@_t.City</option>
                 @foreach (var city in Cities)
                 {
-                    <option value=@city.Value.CityId>@city.Value.Name</option>
+                    <option value=@city.CityId>@city.DisplayName</option>
                 }
             </select>
         </div>
@@ -24,7 +24,7 @@
                 <option selected value="" disabled>@_t.Suburb</option>
                 @foreach (var suburb in Suburbs)
                 {
-                    <option value=@suburb.Value.SuburbId>@suburb.Value.Name</option>
+                    <option value=@suburb.SuburbId>@suburb.DisplayName</option>
                 }
             </select>
         </div>
