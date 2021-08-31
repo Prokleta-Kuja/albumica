@@ -81,10 +81,12 @@ namespace albumica
 
             var result = process.StandardOutput.ReadToEnd();
             var info = JsonSerializer.Deserialize<FFmpegResult>(result);
-            if (info?.Format == null)
+            IsVideo = info?.Format != null;
+
+            if (!IsVideo)
                 return false;
 
-            if (info.Format.Tags.TryGetValue("creation_time", out var dtStr))
+            if (info!.Format!.Tags.TryGetValue("creation_time", out var dtStr))
                 if (DateTime.TryParse(dtStr, out var dt))
                     Created = dt;
 

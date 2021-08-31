@@ -18,10 +18,8 @@ namespace albumica
     {
         public static async Task Main(string[] args)
         {
-            //await Test2();
-            // await Test();
-            var fi = new FileInfo("./appdata/import/20170416_113317.jpg");
-            // var fi = new FileInfo("./VID_20210815_124520.mp4");
+            //var fi = new FileInfo("./appdata/import/20170416_113317.jpg");
+            var fi = new FileInfo("./VID_20210815_124520.mp4");
             // var fi = new FileInfo("./TestFace.cs");
             var meta = new MetaInfo(fi);
             var result = meta.Load();
