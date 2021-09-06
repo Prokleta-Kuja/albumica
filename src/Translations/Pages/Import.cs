@@ -16,6 +16,10 @@ namespace albumica.Translations
         string LoadingGps { get; }
         string GpsFound { get; }
         string GpsNotFound { get; }
+        string NothingToImport { get; }
+        string Duplicate { get; }
+        string Importing { get; }
+        string Date { get; }
     }
     public class Import_en : Standard_en, IImport
     {
@@ -33,6 +37,10 @@ namespace albumica.Translations
         public string LoadingGps => "Loading Coordinates";
         public string GpsFound => "Coordinates found";
         public string GpsNotFound => "Coordinates not found";
+        public string NothingToImport => "Nothing to import";
+        public string Duplicate => "Duplicate";
+        public string Importing => "Importing";
+        public string Date => "Date";
     }
     public class Import_hr : Standard_hr, IImport
     {
@@ -50,5 +58,9 @@ namespace albumica.Translations
         public string LoadingGps => "Učitavam koordinate";
         public string GpsFound => "Koordinate pronađene";
         public string GpsNotFound => "Koordinate nisu pronađene";
+        public string NothingToImport => "Nema više ništa za uvoz";
+        public string Duplicate => "Duplikat";
+        public string Importing => "Uvozim";
+        public string Date => "Datum";
     }
 }

@@ -26,6 +26,7 @@
     CultureInfo _ci = null!;
     TimeZoneInfo _tz = null!;
     DateTime? _local;
+    DateTime? _original;
     readonly IStandard _t = LocalizationFactory.Standard();
     [Parameter] public string For { get; set; } = null!;
     [Parameter] public string Label { get; set; } = null!;
@@ -42,15 +43,22 @@
         if(firstRender && AutoFocus)
             await Input.FocusAsync();
     }
+    protected override void OnParametersSet()
+    {
+        if(_original != Value)
+        {
+            _original = Value;
+            if (Value.HasValue)
+                _local = TimeZoneInfo.ConvertTimeFromUtc(Value.Value,_tz);
+        }
+    }
+    
     protected override void OnInitialized()
     {
         try { _ci = CultureInfo.GetCultureInfo(Locale ?? DEFAULT_LOCALE); }
         catch (Exception) { _ci = CultureInfo.GetCultureInfo(DEFAULT_LOCALE); }
         try { _tz = TimeZoneInfo.FindSystemTimeZoneById(TimeZone ?? DEFAULT_TZ); }
         catch (Exception) { _tz = TimeZoneInfo.FindSystemTimeZoneById(DEFAULT_TZ); }
-
-        if (Value.HasValue)
-            _local = TimeZoneInfo.ConvertTimeFromUtc(Value.Value,_tz);
     }
     
     private async Task Update()

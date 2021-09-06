@@ -15,10 +15,8 @@ namespace albumica.Data
         public DbSet<City> Cities { get; set; } = null!;
         public DbSet<Country> Countries { get; set; } = null!;
         public DbSet<Suburb> Suburbs { get; set; } = null!;
-        public DbSet<Tag> Tags { get; set; } = null!;
         public DbSet<Image> Images { get; set; } = null!;
         public DbSet<ImagePerson> ImagePersons { get; set; } = null!;
-        public DbSet<ImageTag> ImageTags { get; set; } = null!;
         public DbSet<Location> Locations { get; set; } = null!;
         public DbSet<Person> People { get; set; } = null!;
         public DbSet<Video> Videos { get; set; } = null!;
@@ -44,16 +42,11 @@ namespace albumica.Data
                 e.HasOne(p => p.City).WithMany(p => p!.Suburbs);
             });
 
-            builder.Entity<Tag>(e =>
-            {
-                e.HasKey(p => p.TagId);
-            });
-
             builder.Entity<Image>(e =>
             {
                 e.HasKey(p => p.ImageId);
-                e.HasOne(p => p.Video).WithOne(p => p!.Image!).HasForeignKey<Image>(p => p.VideoId).OnDelete(DeleteBehavior.SetNull);
-                e.HasOne(p => p.Location).WithOne(p => p!.Image!).HasForeignKey<Image>(p => p.LocationId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(p => p.Video).WithOne(p => p!.Image!).HasForeignKey<Image>(p => p.VideoId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(p => p.Location).WithOne(p => p!.Image!).HasForeignKey<Image>(p => p.LocationId).OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<ImagePerson>(e =>
@@ -61,13 +54,6 @@ namespace albumica.Data
                 e.HasKey(p => new { p.ImageId, p.PersonId });
                 e.HasOne(p => p.Person).WithMany(p => p!.Images).OnDelete(DeleteBehavior.Cascade);
                 e.HasOne(p => p.Image).WithMany(p => p!.Persons).OnDelete(DeleteBehavior.Cascade);
-            });
-
-            builder.Entity<ImageTag>(e =>
-            {
-                e.HasKey(p => new { p.ImageId, p.TagId });
-                e.HasOne(p => p.Tag).WithMany(p => p!.Images).OnDelete(DeleteBehavior.Cascade);
-                e.HasOne(p => p.Image).WithMany(p => p!.Tags).OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<Location>(e =>

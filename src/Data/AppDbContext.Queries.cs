@@ -10,7 +10,7 @@ namespace albumica.Data
 
         private void AddQueries(ModelBuilder builder)
         {
-            builder.Entity<CountryModel>().HasNoKey().ToSqlQuery(@"
+            builder.Entity<CountryModel>().HasNoKey().ToView(null).ToSqlQuery(@"
 SELECT
     co.*
     ,(SELECT count(CityId) FROM Cities WHERE CountryId = co.CountryId) CityCount
@@ -19,7 +19,7 @@ FROM Countries co
     LEFT JOIN Cities ct ON co.CountryId = ct.CountryId
 ORDER BY co.Name");
 
-            builder.Entity<PersonModel>().HasNoKey().ToSqlQuery(@"
+            builder.Entity<PersonModel>().HasNoKey().ToView(null).ToSqlQuery(@"
 SELECT
     p.*
     ,(SELECT count(PersonId) FROM ImagePersons WHERE PersonId = p.PersonId) ImageCount

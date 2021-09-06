@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 namespace albumica.Pages.Import
 {
@@ -27,12 +25,8 @@ namespace albumica.Pages.Import
         private List<Suburb> Suburbs = new();
 
 
-        ExifTag[] CoordinateKeys = new ExifTag[] { ExifTag.GPSLatitudeRef, ExifTag.GPSLatitude, ExifTag.GPSLongitude };
-        ExifTag[] AltitudeKeys = new ExifTag[] { ExifTag.GPSAltitude, ExifTag.GPSAltitudeRef };
-
         private bool Loading = true;
-        private bool HasGpsCoordinates;
-        private Data.Location CurrentLocation = new();
+        public Data.Location CurrentLocation { get; set; } = new();
         private GeoCodeModel? CurrentGeoCode;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -152,51 +146,17 @@ namespace albumica.Pages.Import
             if (newData)
                 await LoadLocations();
         }
-        public async Task ChangeImage(ImportImageModel model)
+        public async Task Change(ImportModel model)
         {
             Loading = true;
-            HasGpsCoordinates = false;
             CurrentLocation = new();
             StateHasChanged();
 
-            var info = SixLabors.ImageSharp.Image.Identify(model.FullName);
-            if (info == null)
-                return; // TODO: this is video most likely
-
-            var exif = info.Metadata.ExifProfile.Values.ToDictionary(m => m.Tag);
-
-            if (CoordinateKeys.All(k => exif.ContainsKey(k)))
+            if (model.HasGpsData)
             {
-                var lat = exif[ExifTag.GPSLatitude].GetValue() as Rational[];
-                var lon = exif[ExifTag.GPSLongitude].GetValue() as Rational[];
-                var latRef = exif[ExifTag.GPSLatitudeRef].GetValue();
-
-                if (lat != null && lon != null && latRef != null)
-                {
-                    var longitude = lon[0].ToDouble() + (lon[1].ToDouble() / 60) + (lon[2].ToDouble() / 3600);
-                    var latitude = lat[0].ToDouble() + (lat[1].ToDouble() / 60) + (lat[2].ToDouble() / 3600);
-                    if (latRef.ToString()!.Equals("S", StringComparison.InvariantCultureIgnoreCase))
-                        latitude *= -1;
-
-                    CurrentLocation.Latitude = latitude;
-                    CurrentLocation.Longitude = longitude;
-
-                    await ReverseGeoCode();
-                    HasGpsCoordinates = true;
-
-                    // Extract altitude
-                    // if (altitudeKeys.All(k => exif.ContainsKey(k)))
-                    // {
-                    //     var alt = (Rational)exif[ExifTag.GPSAltitude].GetValue();
-                    //     var altRef = (byte)exif[ExifTag.GPSAltitudeRef].GetValue();
-
-                    //     var result = alt.ToDouble();
-                    //     if (altRef == 1)
-                    //         result *= -1; // Below see level
-
-                    //     // Use here
-                    // }
-                }
+                CurrentLocation.Latitude = model.Latitude!.Value;
+                CurrentLocation.Longitude = model.Longitude!.Value;
+                await ReverseGeoCode();
             }
 
             Loading = false;

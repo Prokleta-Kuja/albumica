@@ -40,7 +40,8 @@ namespace albumica
             public static readonly string VideosRootPath = DataPath("videos");
             public static readonly string CacheRootPath = DataPath("cache");
             public static readonly string CacheImportPath = Path.Combine(CacheRootPath, "import");
-            public static string ImagesForPath(int year, int month) => DataPath($"images/{year}/{month}");
+            public static string ImagesForPath(DateTime created, string fileName) => DataPath($"images/{created.Year}/{created.Month}/{fileName}");
+            public static string VideosForPath(DateTime created, string fileName) => DataPath($"videos/{created.Year}/{created.Month}/{fileName}");
             public static readonly string AppDbConnectionString = $"Data Source={DataPath("app.db")}";
         }
     }

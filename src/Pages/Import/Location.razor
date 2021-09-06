@@ -6,7 +6,7 @@
                 <option selected value="" disabled>@_t.Country</option>
                 @foreach (var country in Countries)
                 {
-                    <option value=@country.Value.CountryId>@country.Value.Code - @country.Value.DisplayName</option>
+                    <option value=@country.Value.CountryId>@country.Value.DisplayName</option>
                 }
             </select>
         </div>
@@ -36,7 +36,7 @@
                     @_t.LoadingGps
                 </button>
             }
-            else if(HasGpsCoordinates)
+            else if(CurrentLocation.HasGpsData)
             {
                 <button class="btn btn-success w-100" disabled>@_t.GpsFound</button>
             }

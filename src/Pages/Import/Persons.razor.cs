@@ -20,9 +20,10 @@ namespace albumica.Pages.Import
         [Inject] private IFaceRecogniton FaceRecognition { get; set; } = null!;
         private readonly IImport _t = LocalizationFactory.Import();
         private readonly Formats _f = LocalizationFactory.Formats();
+        public readonly Dictionary<int, string> Selected = new();
+        public bool ForTraining = false;
         private List<PersonTagModel> Tags = new();
-        private HashSet<string> Selected = new();
-        private bool ForTraining = false;
+        private bool IsVideo = false;
         private bool AiEnabled = false;
         private List<Face>? Faces;
         private Dictionary<Rectangle, string> FaceImages = new();
@@ -42,8 +43,10 @@ namespace albumica.Pages.Import
             StateHasChanged();
         }
 
-        public async Task ChangeImage(ImportImageModel model)
+        public async Task Change(ImportModel model)
         {
+            Tags.Sort();
+            IsVideo = model.IsVideo;
             ForTraining = false;
             Selected.Clear();
 
@@ -55,7 +58,7 @@ namespace albumica.Pages.Import
 
             FaceImages.Clear();
             StateHasChanged();
-            Faces = await FaceRecognition.RecognizeFaces(model.FullName);
+            Faces = await FaceRecognition.RecognizeFaces(model.FileInfo.FullName);
 
             if (Faces == null)
             {
@@ -63,7 +66,7 @@ namespace albumica.Pages.Import
             }
             else
             {
-                var img = SixLabors.ImageSharp.Image.Load(model.FullName);
+                var img = SixLabors.ImageSharp.Image.Load(model.FileInfo.FullName);
                 var fileName = Path.GetFileNameWithoutExtension(model.Uri);
                 var fileExt = Path.GetExtension(model.Uri);
 
@@ -93,14 +96,14 @@ namespace albumica.Pages.Import
         }
         public void OnTag(PersonTagModel model)
         {
-            if (Selected.Contains(model.Name))
+            if (Selected.ContainsKey(model.PersonId))
             {
-                Selected.Remove(model.Name);
+                Selected.Remove(model.PersonId);
                 model.ImageCount--;
             }
             else
             {
-                Selected.Add(model.Name);
+                Selected.Add(model.PersonId, model.Name);
                 model.ImageCount++;
             }
 

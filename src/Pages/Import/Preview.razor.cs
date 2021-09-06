@@ -12,13 +12,15 @@ namespace albumica.Pages.Import
 {
     public partial class Preview : IDisposable
     {
-        const string IMAGE_IMPORT = nameof(IMAGE_IMPORT);
+        const string MEDIA_IMPORT = nameof(MEDIA_IMPORT);
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
         private readonly IImport _t = LocalizationFactory.Import();
         private DotNetObjectReference<Preview>? ThisRef;
         private IJSObjectReference? ElementSizeRef;
         private string CurrentImageOriginalUri = string.Empty;
         private string CurrentImageUri = string.Empty;
+        private string CurrentVideoUri = string.Empty;
+        private bool Loading;
         private int Width;
         private int Height;
         private int ViewPortWidth;
@@ -29,9 +31,9 @@ namespace albumica.Pages.Import
             if (firstRender)
             {
                 ThisRef = DotNetObjectReference.Create(this);
-                ElementSizeRef = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ImageContainerSize.js");
+                ElementSizeRef = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/MediaContainerSize.js");
 
-                await ElementSizeRef.InvokeVoidAsync("initialize", ThisRef, IMAGE_IMPORT);
+                await ElementSizeRef.InvokeVoidAsync("initialize", ThisRef, MEDIA_IMPORT);
             }
         }
 
@@ -42,15 +44,30 @@ namespace albumica.Pages.Import
             if (ElementSizeRef != null)
                 ElementSizeRef.DisposeAsync().GetAwaiter();
         }
-        public void ChangeImage(ImportImageModel model)
+        public void Change(ImportModel model)
         {
-            CurrentImageOriginalUri = model.Uri;
-            ChangeImageUri();
+            Loading = true;
+            if (model.IsVideo)
+            {
+                CurrentImageOriginalUri = CurrentImageUri = string.Empty;
+                CurrentVideoUri = model.Uri;
+                ChangeVideoUri();
+            }
+            else
+            {
+                CurrentVideoUri = string.Empty;
+                CurrentImageOriginalUri = model.Uri;
+                ChangeImageUri();
+            }
+            Loading = false;
         }
         private void ChangeImageUri()
         {
             if (string.IsNullOrWhiteSpace(CurrentImageOriginalUri) || Width == 0 || Height == 0)
                 return;
+
+            Loading = true;
+            StateHasChanged();
 
             var w = (int)(Width * DevicePixelRatio);
             var h = (int)(Height * DevicePixelRatio);
@@ -66,6 +83,18 @@ namespace albumica.Pages.Import
                 qs.Add("m", mode.ToString());
 
             CurrentImageUri = QueryHelpers.AddQueryString(CurrentImageOriginalUri, qs);
+            Loading = false;
+            StateHasChanged();
+        }
+        private void ChangeVideoUri()
+        {
+            if (string.IsNullOrWhiteSpace(CurrentVideoUri) || Width == 0 || Height == 0)
+                return;
+
+            Loading = true;
+            StateHasChanged();
+
+            Loading = false;
             StateHasChanged();
         }
 
@@ -78,6 +107,7 @@ namespace albumica.Pages.Import
             DevicePixelRatio = devicePixelRatio;
 
             ChangeImageUri();
+            ChangeVideoUri();
         }
     }
 }
