@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "dotnet-ef": {
-      "version": "5.0.8",
+      "version": "7.0.4",
       "commands": [
         "dotnet-ef"
       ]
     },
     "dotnet-outdated-tool": {
-      "version": "3.2.0",
+      "version": "4.5.1",
       "commands": [
         "dotnet-outdated"
       ]
