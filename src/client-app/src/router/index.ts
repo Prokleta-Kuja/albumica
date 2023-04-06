@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/otprema',
       name: 'uploads',
-      component: () => import('../views/HomeView.vue'),
+      component: () => import('../views/UploadsView.vue'),
     }
     // {
     //   path: '/users/:id(\\d+)',
@@ -46,10 +46,10 @@ const router = createRouter({
   ]
 })
 
-const publicPages = ['/login', '/logout']
+const publicPaths = ['/prijava', '/odjava']
 router.beforeEach(async (to) => {
   const auth = useAuth()
-  const authRequired = !publicPages.includes(to.path)
+  const authRequired = !publicPaths.includes(to.path)
 
   // Must wait for auth to intialize before making a decision
   while (!auth.initialized) await new Promise((f) => setTimeout(f, 500))

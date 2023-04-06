@@ -132,7 +132,6 @@ public class Program
             app.ReregisterRecurringJobs();
 
             app.MapControllers().RequireAuthorization();
-            app.AddTusEndpoint();
 
             app.MapWhen(x => !x.Request.Path.Value!.StartsWith("/api/"), builder =>
             {
