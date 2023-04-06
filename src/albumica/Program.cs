@@ -132,6 +132,7 @@ public class Program
             app.ReregisterRecurringJobs();
 
             app.MapControllers().RequireAuthorization();
+            app.AddTusEndpoint();
 
             app.MapWhen(x => !x.Request.Path.Value!.StartsWith("/api/"), builder =>
             {
@@ -161,6 +162,7 @@ public class Program
     static async Task Initialize(IServiceProvider provider)
     {
         Directory.CreateDirectory(C.Paths.ConfigData);
+        Directory.CreateDirectory(C.Paths.TempData);
         Directory.CreateDirectory(C.Paths.QueueData);
 
         using var scope = provider.CreateScope();

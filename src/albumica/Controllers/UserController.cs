@@ -8,7 +8,7 @@ namespace albumica.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Tags(nameof(Entities.User))]
+[Tags(nameof(User))]
 [Produces("application/json")]
 [ProducesErrorResponseType(typeof(PlainError))]
 public class UsersController : ControllerBase

@@ -41,6 +41,8 @@ public static class C
         static string Root => IsDebug ? Path.Join(Environment.CurrentDirectory, "/data") : "/data";
         public static readonly string ConfigData = $"{Root}/config";
         public static string ConfigDataFor(string file) => Path.Combine(ConfigData, file);
+        public static readonly string TempData = $"{Root}/temp";
+        public static string TempDataFor(string file) => Path.Combine(TempData, file);
         public static readonly string QueueData = $"{Root}/queue";
         public static string QueueDataFor(string file) => Path.Combine(QueueData, file);
         public static readonly string Sqlite = ConfigDataFor("app.db");
