@@ -19,6 +19,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPost(Name = "UploadFiles")]
+    //[RequestTimeout] TODO: will be available in .Net 8
     [RequestSizeLimit(5368709120)] // 5GB
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> UploadLargeFile()
@@ -36,8 +37,6 @@ public class UploadsController : ControllerBase
         var reader = new MultipartReader(mediaTypeHeader.Boundary.Value, request.Body, 1024 * 1024 / 2);
         var section = await reader.ReadNextSectionAsync();
 
-        // This sample try to get the first file from request and save it
-        // Make changes according to your needs in actual use
         var saved = 0;
         while (section != null)
         {
@@ -64,8 +63,8 @@ public class UploadsController : ControllerBase
         }
 
         if (saved > 0)
-            return BadRequest("No files data in the request.");
+            return Ok();
 
-        return Ok();
+        return BadRequest(new PlainError("No files data in the request."));
     }
 }

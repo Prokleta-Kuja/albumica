@@ -12,4 +12,6 @@ public class User
     public required string PasswordHash { get; set; }
     public DateTime? LastUpload { get; set; }
     public DateTime? Disabled { get; set; }
+
+    public List<Media>? Basket { get; set; }
 }

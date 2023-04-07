@@ -34,6 +34,11 @@ public class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.WebHost.ConfigureKestrel(t =>
+            {
+                // TODO: default is 130sec, test it
+                t.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(15);
+            });
             builder.Host.UseSerilog();
             builder.Services.Configure<ForwardedHeadersOptions>(options => options.ForwardedHeaders = ForwardedHeaders.All);
             builder.Services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();

@@ -20,7 +20,12 @@ public class PostgresDbContext : AppDbContext
 public partial class AppDbContext : DbContext, IDataProtectionKeyContext
 {
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+    public DbSet<Image> Images => Set<Image>();
+    public DbSet<Media> Media => Set<Media>();
+    public DbSet<Person> Persons => Set<Person>();
+    public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Video> Videos => Set<Video>();
 
     protected void AdditionalConfiguration(DbContextOptionsBuilder options)
     {
@@ -38,6 +43,38 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
         builder.Entity<User>(e =>
         {
             e.HasKey(e => e.UserId);
+            e.HasMany(e => e.Basket).WithMany();
+        });
+
+        builder.Entity<Media>(e =>
+        {
+            e.HasKey(e => e.MediaId);
+        });
+
+        builder.Entity<Image>(e =>
+        {
+            e.HasKey(e => e.MediaId);
+            e.Property(e => e.MediaId).ValueGeneratedNever();
+            e.HasOne(e => e.Media).WithOne(e => e.Image).HasForeignKey<Image>(e => e.MediaId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Video>(e =>
+        {
+            e.HasKey(e => e.MediaId);
+            e.Property(e => e.MediaId).ValueGeneratedNever();
+            e.HasOne(e => e.Media).WithOne(e => e.Video).HasForeignKey<Video>(e => e.MediaId).IsRequired().OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Person>(e =>
+        {
+            e.HasKey(e => e.PersonId);
+            e.HasMany(e => e.Media).WithMany(e => e.Persons);
+        });
+
+        builder.Entity<Tag>(e =>
+        {
+            e.HasKey(e => e.TagId);
+            e.HasMany(e => e.Media).WithMany(e => e.Tags);
         });
 
         // SQLite conversions
