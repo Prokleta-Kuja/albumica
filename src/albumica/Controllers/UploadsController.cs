@@ -44,7 +44,7 @@ public class UploadsController : ControllerBase
                 && contentDisposition.DispositionType.Equals("form-data")
                 && !string.IsNullOrEmpty(contentDisposition.FileName.Value))
             {
-                var saveToPath = C.Paths.TempDataFor(contentDisposition.FileName.Value);
+                var saveToPath = C.Paths.QueueDataFor(contentDisposition.FileName.Value);
                 if (!System.IO.File.Exists(saveToPath))
                     try
                     {
