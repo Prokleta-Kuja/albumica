@@ -12,8 +12,8 @@ namespace albumica.Jobs;
 public class ProcessQueue
 {
     const string VID_CREATED_TAG = "creation_time";
-    static readonly HashSet<string> s_imgFormats = new(StringComparer.InvariantCultureIgnoreCase) { "JPG", "JPEG", "PNG", };
-    static readonly HashSet<string> s_vidFormats = new(StringComparer.InvariantCultureIgnoreCase) { "MOV", "AVI", "MP4", };
+    static readonly HashSet<string> s_imgFormats = new(StringComparer.InvariantCultureIgnoreCase) { ".JPG", ".JPEG", ".PNG", };
+    static readonly HashSet<string> s_vidFormats = new(StringComparer.InvariantCultureIgnoreCase) { ".MOV", ".AVI", ".MP4", };
     readonly ILogger<ProcessQueue> _logger;
     readonly AppDbContext _db;
     public ProcessQueue(ILogger<ProcessQueue> logger, AppDbContext db)
@@ -51,21 +51,25 @@ public class ProcessQueue
             return;
         }
 
-        var origFilePath = C.Paths.MediaDataFor(Path.GetFileName(filePath));
-        var prevFilePath = C.Paths.MediaDataFor($"{Path.GetFileNameWithoutExtension(filePath)}_preview.webp");
+        var origFileName = Path.GetFileName(filePath);
+        var prevFileName = $"{Path.GetFileNameWithoutExtension(filePath)}_preview.webp";
+        var origFilePath = C.Paths.MediaDataFor(origFileName);
+        var prevFilePath = C.Paths.MediaDataFor(prevFileName);
+        var ext = Path.GetExtension(origFilePath);
         File.Move(filePath, origFilePath);
+
         var media = new Media
         {
             SHA256 = sha256,
-            Original = origFilePath,
+            Original = origFileName,
+            IsVideo = s_vidFormats.Contains(ext),
         };
         _db.Media.Add(media);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(CancellationToken.None);
 
-        var ext = Path.GetExtension(origFilePath);
         if (s_imgFormats.Contains(ext))
         {
-            var img = await SixLabors.ImageSharp.Image.LoadAsync(origFilePath, token);
+            var img = await Image.LoadAsync(origFilePath, token);
             if (TryGetCreateDateFromExif(img.Metadata.ExifProfile, out var exifCreated))
                 media.Created = exifCreated;
 
@@ -73,12 +77,12 @@ public class ProcessQueue
             var resize = new ResizeOptions
             {
                 Size = new Size(480, 480),
-                Mode = ResizeMode.Max,
+                Mode = ResizeMode.Min,
             };
             img.Mutate(x => x.Resize(resize).AutoOrient());
             await img.SaveAsWebpAsync(prevFilePath, token);
 
-            media.Preview = prevFilePath;
+            media.Preview = prevFileName;
         }
         else if (s_vidFormats.Contains(ext))
         {
@@ -98,8 +102,7 @@ public class ProcessQueue
             )
             .ProcessAsynchronously();
 
-            media.Preview = prevFilePath;
-            media.IsVideo = true;
+            media.Preview = prevFileName;
         }
         else
             _logger.LogError("Failed to get info or generate preview for {FilePath}", origFilePath);

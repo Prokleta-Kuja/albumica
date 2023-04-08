@@ -1,4 +1,6 @@
+using albumica.Jobs;
 using albumica.Models;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
@@ -13,9 +15,11 @@ namespace albumica.Controllers;
 public class UploadsController : ControllerBase
 {
     readonly ILogger<UploadsController> _logger;
-    public UploadsController(ILogger<UploadsController> logger)
+    readonly IBackgroundJobClient _job;
+    public UploadsController(ILogger<UploadsController> logger, IBackgroundJobClient job)
     {
         _logger = logger;
+        _job = job;
     }
 
     [HttpPost(Name = "UploadFiles")]
@@ -63,8 +67,20 @@ public class UploadsController : ControllerBase
         }
 
         if (saved > 0)
+        {
+            _logger.LogDebug("Uploaded {Count} media", saved);
             return Ok();
+        }
 
         return BadRequest(new PlainError("No files data in the request."));
+    }
+    [HttpPatch(Name = "ProcessQueue")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult ProcessQueue()
+    {
+        _logger.LogDebug("Starting up processing queue job");
+        _job.Enqueue<ProcessQueue>(j => j.Run(CancellationToken.None));
+
+        return Ok();
     }
 }

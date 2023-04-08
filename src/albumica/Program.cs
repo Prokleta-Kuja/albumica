@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using poshtar.Extensions;
 using Serilog;
 using Serilog.Events;
@@ -132,6 +133,13 @@ public class Program
                 app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(C.Paths.MediaData),
+                RequestPath = C.Paths.MediaRequest,
+                HttpsCompression = Microsoft.AspNetCore.Http.Features.HttpsCompressionMode.DoNotCompress,
+            });
 
             app.UseJobDashboard();
             app.ReregisterRecurringJobs();

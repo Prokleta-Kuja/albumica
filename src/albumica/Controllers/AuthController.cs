@@ -77,7 +77,7 @@ public class AuthController : ControllerBase
         if (user == null || _pwd.VerifyHashedPassword(user.PasswordHash, model.Password) == PasswordVerificationResult.Failed)
             return BadRequest(new PlainError("Invalid username or password"));
 
-        var expires = DateTime.UtcNow.AddHours(1);
+        var expires = DateTime.UtcNow.AddHours(8);
         var claims = new List<Claim> { new(ClaimTypes.Name, user.Name), new(ClaimTypes.Sid, user.UserId.ToString()), new(ClaimTypes.Expiration, expires.ToBinary().ToString()) };
         if (user.IsAdmin)
             claims.Add(new Claim(ClaimTypes.Role, C.ADMIN_ROLE));
