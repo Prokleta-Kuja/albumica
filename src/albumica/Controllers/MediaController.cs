@@ -1,6 +1,10 @@
+using System.IO.Compression;
+using System.Text;
 using albumica.Entities;
 using albumica.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 
 namespace albumica.Controllers;
@@ -12,6 +16,7 @@ namespace albumica.Controllers;
 [ProducesErrorResponseType(typeof(PlainError))]
 public class MediaController : ControllerBase
 {
+    static readonly FileExtensionContentTypeProvider s_ctp = new();
     readonly ILogger<MediaController> _logger;
     readonly AppDbContext _db;
     public MediaController(ILogger<MediaController> logger, AppDbContext db)
@@ -54,7 +59,7 @@ public class MediaController : ControllerBase
         return Ok(new ListResponse<MediaLM>(req, count, items));
     }
 
-    [HttpGet("{mediaId}", Name = "GetMediaById")]
+    [HttpGet("{mediaId:int}", Name = "GetMediaById")]
     [ProducesResponseType(typeof(MediaVM), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOneAsnyc(int mediaId)
@@ -71,7 +76,7 @@ public class MediaController : ControllerBase
         return Ok(media);
     }
 
-    [HttpDelete("{mediaId}", Name = "DeleteMedia")]
+    [HttpDelete("{mediaId:int}", Name = "DeleteMedia")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAsync(int mediaId)
@@ -94,6 +99,34 @@ public class MediaController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("{*path}")]
+    public IActionResult GetFile(string path)
+    {
+        var filePath = C.Paths.MediaDataFor(path);
+        var contentType = GetResponseContentTypeOrDefault(filePath);
+
+        return PhysicalFile(filePath, contentType);
+    }
+    [AllowAnonymous]
+    [HttpGet("zip/{bundleId:int}")]
+    public async Task GetZip(int bundleId)
+    {
+        //Response.ContentLength = file.Length; ??????
+        // Response.ContentType = s_ctp.Mappings[".zip"];
+        // Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{bundleId}.zip\"");
+        // using var zip = new ZipArchive(Response.BodyWriter.AsStream(), ZipArchiveMode.Create);
+        // foreach (var item in items)
+        // {
+        // var entry = zip.CreateEntry(file.Name);
+        // entry.ExternalAttributes = entry.ExternalAttributes | (Convert.ToInt32("664", 8) << 16);
+        // using var entryStream = entry.Open();
+        // using var fileStream = file.OpenRead();
+        // await fileStream.CopyToAsync(entryStream);
+        // }
+        await Response.BodyWriter.WriteAsync(Encoding.UTF8.GetBytes("Nope"));
+    }
+    static string GetResponseContentTypeOrDefault(string path)
+        => s_ctp.TryGetContentType(path, out var matchedContentType) ? matchedContentType : "application/octet-stream";
 }
 
 public enum MediaSortBy
