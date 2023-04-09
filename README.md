@@ -1,6 +1,5 @@
 # Albumica
 
-- Edge case when filename already exists but hash is different (eg 01.jpg)
 - Physical file provider honoring auth and cache headers
 - Check IsAdmin in client-app and admin controllers (policy?)
 - Persons CRUD
@@ -19,7 +18,7 @@ npx openapi-typescript-codegen --useOptions --input http://localhost:5080/swagge
 
 ## Dependencies
 ```
-sudo apt-get install -y ffmpeg
+sudo apt update && sudo apt-get install -y ffmpeg
 ```
 
 ## Local DeepStack server

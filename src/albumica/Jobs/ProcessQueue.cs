@@ -51,11 +51,19 @@ public class ProcessQueue
             return;
         }
 
+        var ext = Path.GetExtension(filePath);
         var origFileName = Path.GetFileName(filePath);
         var prevFileName = $"{Path.GetFileNameWithoutExtension(filePath)}_preview.webp";
         var origFilePath = C.Paths.MediaDataFor(origFileName);
         var prevFilePath = C.Paths.MediaDataFor(prevFileName);
-        var ext = Path.GetExtension(origFilePath);
+
+        if (File.Exists(origFilePath))
+        {
+            var newFileName = $"{Path.GetFileNameWithoutExtension(origFileName)}_{DateTime.UtcNow.Ticks}{Path.GetExtension(origFileName)}";
+            prevFileName = $"{Path.GetFileNameWithoutExtension(newFileName)}_preview.webp";
+            origFilePath = C.Paths.MediaDataFor(newFileName);
+            prevFilePath = C.Paths.MediaDataFor(prevFileName);
+        }
         File.Move(filePath, origFilePath);
 
         var media = new Media
