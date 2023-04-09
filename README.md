@@ -1,6 +1,14 @@
 # Albumica
 
-todo
+- Edge case when filename already exists but hash is different (eg 01.jpg)
+- Physical file provider honoring auth and cache headers
+- Check IsAdmin in client-app and admin controllers (policy?)
+- Persons CRUD
+- Tags CRUD
+- Categorization UI
+- Basket save as list for streaming zip
+- Support for streaming zip download
+- Explore postgres backup
 
 ## OpenAPI
 
