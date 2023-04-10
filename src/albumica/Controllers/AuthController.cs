@@ -35,12 +35,19 @@ public class AuthController : ControllerBase
     {
         if (HttpContext.User.Identity?.IsAuthenticated ?? false)
         {
+            var isAdmin = HttpContext.User.FindAll(ClaimTypes.Role).Any(c => c.Value == C.ADMIN_ROLE);
             var expires = DateTime.MinValue;
             var expiresStr = HttpContext.User.FindFirst(ClaimTypes.Expiration)?.Value;
             if (!string.IsNullOrWhiteSpace(expiresStr) && long.TryParse(expiresStr, out var expiresVal))
                 expires = DateTime.FromBinary(expiresVal);
 
-            return Ok(new AuthStatusModel { Authenticated = true, Username = HttpContext.User.Identity!.Name, Expires = expires });
+            return Ok(new AuthStatusModel
+            {
+                Authenticated = true,
+                Username = HttpContext.User.Identity!.Name,
+                IsAdmin = isAdmin,
+                Expires = expires,
+            });
         }
         else
             return Ok(new AuthStatusModel { Authenticated = false });
@@ -62,7 +69,7 @@ public class AuthController : ControllerBase
         var authProperties = new AuthenticationProperties { AllowRefresh = false, ExpiresUtc = expires, IsPersistent = true };
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
 
-        return Ok(new AuthStatusModel { Authenticated = true, Username = "temporary admin", Expires = expires });
+        return Ok(new AuthStatusModel { Authenticated = true, Username = "temporary admin", Expires = expires, IsAdmin = true });
     }
 
     [HttpPost(Name = "Login")]
@@ -73,7 +80,7 @@ public class AuthController : ControllerBase
         model.Username = model.Username.ToLower();
         var user = await _db.Users
             .AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Name == model.Username && u.IsAdmin == true && u.Disabled == null);
+            .SingleOrDefaultAsync(u => u.Name == model.Username && u.Disabled == null);
         if (user == null || _pwd.VerifyHashedPassword(user.PasswordHash, model.Password) == PasswordVerificationResult.Failed)
             return BadRequest(new PlainError("Invalid username or password"));
 
@@ -86,7 +93,7 @@ public class AuthController : ControllerBase
         var authProperties = new AuthenticationProperties { AllowRefresh = false, ExpiresUtc = expires, IsPersistent = true };
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
 
-        return Ok(new AuthStatusModel { Authenticated = true, Username = user.Name, Expires = expires });
+        return Ok(new AuthStatusModel { Authenticated = true, Username = user.Name, Expires = expires, IsAdmin = user.IsAdmin });
     }
 
     [HttpDelete(Name = "Logout")]

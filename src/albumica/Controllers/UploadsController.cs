@@ -1,12 +1,14 @@
 using albumica.Jobs;
 using albumica.Models;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 
 namespace albumica.Controllers;
 
+[Authorize(Roles = C.ADMIN_ROLE)]
 [ApiController]
 [Route("api/uploads")]
 [Tags("Upload")]
@@ -74,6 +76,8 @@ public class UploadsController : ControllerBase
 
         return BadRequest(new PlainError("No files data in the request."));
     }
+
+    [Authorize(Roles = C.ADMIN_ROLE)]
     [HttpPatch(Name = "ProcessQueue")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult ProcessQueue()

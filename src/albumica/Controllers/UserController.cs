@@ -1,11 +1,14 @@
 using albumica.Entities;
 using albumica.Models;
 using albumica.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace albumica.Controllers;
 
+
+[Authorize(Roles = C.ADMIN_ROLE)]
 [ApiController]
 [Route("api/users")]
 [Tags(nameof(User))]

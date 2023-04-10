@@ -82,4 +82,40 @@ export class MediaService {
         });
     }
 
+    /**
+     * @returns any Success
+     * @throws ApiError
+     */
+    public static getApiMedia({
+        path,
+    }: {
+        path: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/media/{path}',
+            path: {
+                'path': path,
+            },
+        });
+    }
+
+    /**
+     * @returns any Success
+     * @throws ApiError
+     */
+    public static getApiMediaZip({
+        bundleId,
+    }: {
+        bundleId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/media/zip/{bundleId}',
+            path: {
+                'bundleId': bundleId,
+            },
+        });
+    }
+
 }

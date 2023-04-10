@@ -38,16 +38,19 @@ auth.initialize()
           <div class="offcanvas-body p-4 pt-0 p-lg-0">
             <hr class="d-lg-none text-white-50">
             <ul class="navbar-nav flex-row flex-wrap">
-              <li class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar" data-bs-dismiss="offcanvas">
+              <li v-if="auth.isAdmin" class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar"
+                data-bs-dismiss="offcanvas">
                 <RouterLink class="nav-link py-2 px-0 px-lg-2" :to="{ name: 'users' }">Korisnici</RouterLink>
               </li>
-              <li class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar" data-bs-dismiss="offcanvas">
+              <li v-if="auth.isAdmin" class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar"
+                data-bs-dismiss="offcanvas">
                 <RouterLink class="nav-link py-2 px-0 px-lg-2" :to="{ name: 'uploads' }">Otprema</RouterLink>
               </li>
             </ul>
             <hr class="d-lg-none text-white-50">
             <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
-              <li class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar" data-bs-dismiss="offcanvas">
+              <li v-if="auth.isAdmin" class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar"
+                data-bs-dismiss="offcanvas">
                 <a class="nav-link py-2 px-0 px-lg-2" href="/jobs" title="Jobs">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                     class="bi bi-calendar-range-fill" viewBox="0 0 16 16">

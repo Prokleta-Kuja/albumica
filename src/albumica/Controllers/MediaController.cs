@@ -59,6 +59,7 @@ public class MediaController : ControllerBase
         return Ok(new ListResponse<MediaLM>(req, count, items));
     }
 
+    [Authorize(Roles = C.ADMIN_ROLE)]
     [HttpGet("{mediaId:int}", Name = "GetMediaById")]
     [ProducesResponseType(typeof(MediaVM), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,6 +77,7 @@ public class MediaController : ControllerBase
         return Ok(media);
     }
 
+    [Authorize(Roles = C.ADMIN_ROLE)]
     [HttpDelete("{mediaId:int}", Name = "DeleteMedia")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -1,6 +1,6 @@
 # Albumica
 
-- Check IsAdmin in client-app and admin controllers (policy?)
+- A page dedicated to fix created date?
 - Persons CRUD
 - Tags CRUD
 - Categorization UI
