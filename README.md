@@ -19,21 +19,6 @@ npx openapi-typescript-codegen --useOptions --input http://localhost:5080/swagge
 sudo apt update && sudo apt-get install -y ffmpeg
 ```
 
-## Local DeepStack server
-
-```
-docker run --rm \
-  --name=deepstack \
-  --net=gunda \
-  -d \
-  -e TZ=Europe/Zagreb \
-  -e VISION-FACE=True \
-  -e MODE=High \
-  -e ADMIN-KEY=Secretadminkey \
-  -v ~/repos/albumica/src/appdata/deepstack:/datastore \
-  deepquestai/deepstack
-```
-
 ### Misc
 
 ```
