@@ -24,8 +24,7 @@ const changePage = (by: number) => {
   refresh();
 }
 
-//TODO: remove this
-data.params.size = 5;
+data.params.size = 100;
 refresh();
 </script>
 

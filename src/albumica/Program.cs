@@ -174,6 +174,7 @@ public class Program
     static async Task Initialize(IServiceProvider provider)
     {
         Directory.CreateDirectory(C.Paths.ConfigData);
+        Directory.CreateDirectory(C.Paths.PreviewData);
         Directory.CreateDirectory(C.Paths.MediaData);
         Directory.CreateDirectory(C.Paths.QueueData);
 

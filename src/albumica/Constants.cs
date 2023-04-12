@@ -43,6 +43,9 @@ public static class C
         public static string MediaRequestFor(string file) => $"{MediaRequest}/{file}";
         public static readonly string ConfigData = $"{Root}/config";
         public static string ConfigDataFor(string file) => Path.Combine(ConfigData, file);
+        public const string PreviewFileNameSuffix = "_preview";
+        public static readonly string PreviewData = $"{Root}/preview";
+        public static string PreviewDataFor(string file) => Path.Combine(PreviewData, file);
         public static readonly string MediaData = $"{Root}/media";
         public static string MediaDataFor(string file) => Path.Combine(MediaData, file);
         public static readonly string QueueData = $"{Root}/queue";

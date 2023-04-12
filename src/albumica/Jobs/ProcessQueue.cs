@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using albumica.Entities;
 using FFMpegCore;
 using FFMpegCore.Enums;
@@ -9,9 +11,10 @@ using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 namespace albumica.Jobs;
 
-public class ProcessQueue
+public partial class ProcessQueue
 {
     const string VID_CREATED_TAG = "creation_time";
+    const string EXIF_DATETIME_FORMAT = "yyyy:MM:dd HH:mm:ss";
     static readonly HashSet<string> s_imgFormats = new(StringComparer.InvariantCultureIgnoreCase) { ".JPG", ".JPEG", ".PNG", };
     static readonly HashSet<string> s_vidFormats = new(StringComparer.InvariantCultureIgnoreCase) { ".MOV", ".AVI", ".MP4", };
     readonly ILogger<ProcessQueue> _logger;
@@ -29,14 +32,51 @@ public class ProcessQueue
         var files = Directory.EnumerateFiles(C.Paths.QueueData, "*", SearchOption.TopDirectoryOnly);
         foreach (var file in files)
         {
-            var ext = Path.GetExtension(file);
-            if (s_imgFormats.Contains(ext) || s_vidFormats.Contains(ext))
-                await Process(file, token);
-            else
-                _logger.LogError("Unsupported file extension {FilePath}", file);
+            try
+            {
+                var ext = Path.GetExtension(file);
+                if (s_imgFormats.Contains(ext) || s_vidFormats.Contains(ext))
+                    await InitialProcess(file, token);
+                else
+                    _logger.LogError("Unsupported file extension {FilePath}", file);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process {FilePath}", file);
+            }
         }
     }
-    async Task Process(string filePath, CancellationToken token)
+
+    [DisplayName("Reparse created")]
+    [AutomaticRetry(Attempts = 0)]
+    public async Task ReparseCreated(CancellationToken token)
+    {
+        var media = await _db.Media.Where(m => !m.Created.HasValue || m.Created == DateTime.MaxValue).ToListAsync(token);
+
+        foreach (var item in media)
+        {
+            var file = C.Paths.MediaDataFor(item.Original);
+            if (item.IsVideo)
+            {
+                var mediaInfo = await FFProbe.AnalyseAsync(file, null, token);
+                if (TryGetCreateDateFromVideo(mediaInfo, out var created))
+                    item.Created = created;
+                else if (TryGetCreateDateFromFileName(file, out var fileNameCreated))
+                    item.Created = fileNameCreated;
+            }
+            else
+            {
+                var img = await Image.LoadAsync(file, token);
+                if (TryGetCreateDateFromExif(img.Metadata.ExifProfile, out var exifCreated))
+                    item.Created = exifCreated;
+                else if (TryGetCreateDateFromFileName(file, out var fileNameCreated))
+                    item.Created = fileNameCreated;
+            }
+        }
+
+        await _db.SaveChangesAsync(token);
+    }
+    async Task InitialProcess(string filePath, CancellationToken token)
     {
         using var fs = File.Open(filePath, FileMode.Open);
         var sha256Bytes = await SHA256.HashDataAsync(fs, token);
@@ -53,16 +93,16 @@ public class ProcessQueue
 
         var ext = Path.GetExtension(filePath);
         var origFileName = Path.GetFileName(filePath);
-        var prevFileName = $"{Path.GetFileNameWithoutExtension(filePath)}_preview.webp";
+        var prevFileName = $"{Path.GetFileNameWithoutExtension(filePath)}{C.Paths.PreviewFileNameSuffix}.webp";
         var origFilePath = C.Paths.MediaDataFor(origFileName);
-        var prevFilePath = C.Paths.MediaDataFor(prevFileName);
+        var prevFilePath = C.Paths.PreviewDataFor(prevFileName);
 
         if (File.Exists(origFilePath))
         {
             var newFileName = $"{Path.GetFileNameWithoutExtension(origFileName)}_{DateTime.UtcNow.Ticks}{Path.GetExtension(origFileName)}";
-            prevFileName = $"{Path.GetFileNameWithoutExtension(newFileName)}_preview.webp";
+            prevFileName = $"{Path.GetFileNameWithoutExtension(newFileName)}{C.Paths.PreviewFileNameSuffix}.webp";
             origFilePath = C.Paths.MediaDataFor(newFileName);
-            prevFilePath = C.Paths.MediaDataFor(prevFileName);
+            prevFilePath = C.Paths.PreviewDataFor(prevFileName);
         }
         File.Move(filePath, origFilePath);
 
@@ -80,6 +120,8 @@ public class ProcessQueue
             var img = await Image.LoadAsync(origFilePath, token);
             if (TryGetCreateDateFromExif(img.Metadata.ExifProfile, out var exifCreated))
                 media.Created = exifCreated;
+            else if (TryGetCreateDateFromFileName(origFileName, out var fileNameCreated))
+                media.Created = fileNameCreated;
 
             // IMG
             var resize = new ResizeOptions
@@ -98,6 +140,8 @@ public class ProcessQueue
             var mediaInfo = await FFProbe.AnalyseAsync(origFilePath, null, token);
             if (TryGetCreateDateFromVideo(mediaInfo, out var created))
                 media.Created = created;
+            else if (TryGetCreateDateFromFileName(origFileName, out var fileNameCreated))
+                media.Created = fileNameCreated;
 
             await FFMpegArguments
             .FromFileInput(origFilePath)
@@ -125,14 +169,22 @@ public class ProcessQueue
         if (profile == null)
             return false;
 
-        if (profile.TryGetValue(ExifTag.DateTimeOriginal, out var edtOriginal) && edtOriginal.GetValue() is DateTime dtOriginal)
-            created = dtOriginal;
-        else if (profile.TryGetValue(ExifTag.DateTimeDigitized, out var edtDig) && edtDig.GetValue() is DateTime dtDig)
-            created = dtDig;
-        else if (profile.TryGetValue(ExifTag.DateTime, out var edt) && edt.GetValue() is DateTime dt)
-            created = dt;
+        object? val = null;
+        if (profile.TryGetValue(ExifTag.DateTimeOriginal, out var edtOriginal))
+            val = edtOriginal.GetValue();
+        else if (profile.TryGetValue(ExifTag.DateTimeDigitized, out var edtDig))
+            val = edtDig.GetValue();
+        else if (profile.TryGetValue(ExifTag.DateTime, out var edt))
+            val = edt.GetValue();
 
-        return created == DateTime.MaxValue;
+        if (val == null)
+            return false;
+
+        if (!DateTime.TryParseExact(val.ToString(), EXIF_DATETIME_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var parsed))
+            return false;
+
+        created = parsed.ToUniversalTime();
+        return true;
     }
 
     static bool TryGetCreateDateFromVideo(IMediaAnalysis analysis, out DateTime created)
@@ -140,17 +192,46 @@ public class ProcessQueue
         created = DateTime.MaxValue;
         if (analysis.Format.Tags != null &&
             analysis.Format.Tags.TryGetValue(VID_CREATED_TAG, out var tdtFormat) &&
-            DateTime.TryParse(tdtFormat, out var dtFormat))
-            created = dtFormat;
+            DateTime.TryParse(tdtFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dtFormat))
+            created = dtFormat.ToUniversalTime();
         else if (analysis.PrimaryVideoStream?.Tags != null &&
             analysis.PrimaryVideoStream.Tags.TryGetValue(VID_CREATED_TAG, out var tdtVideo) &&
-            DateTime.TryParse(tdtVideo, out var dtVideo))
-            created = dtVideo;
+            DateTime.TryParse(tdtVideo, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dtVideo))
+            created = dtVideo.ToUniversalTime();
         else if (analysis.PrimaryAudioStream?.Tags != null &&
             analysis.PrimaryAudioStream.Tags.TryGetValue(VID_CREATED_TAG, out var tdtAudio) &&
-            DateTime.TryParse(tdtAudio, out var dtAudio))
-            created = dtAudio;
+            DateTime.TryParse(tdtAudio, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dtAudio))
+            created = dtAudio.ToUniversalTime();
 
-        return created == DateTime.MaxValue;
+        return created != DateTime.MaxValue;
     }
+
+    [GeneratedRegex("(?<year>[0-9]{4})(?<month>[0-9]{2})(?<day>[0-9]{2})(_|-)(?<hour>[0-9]{2})?(?<minute>[0-9]{2})?(?<second>[0-9]{2})?")]
+    private static partial Regex DateTimeRegex();
+    internal static bool TryGetCreateDateFromFileName(string fileName, out DateTime created)
+    {
+        created = DateTime.MaxValue;
+        var reg = DateTimeRegex();
+        var match = reg.Match(fileName);
+
+        int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
+        bool dateParsed, timeParsed;
+        dateParsed = match.Groups.TryGetValue(nameof(year), out var yearGroup) && int.TryParse(yearGroup.ValueSpan, out year);
+        dateParsed = dateParsed && match.Groups.TryGetValue(nameof(month), out var monthGroup) && int.TryParse(monthGroup.ValueSpan, out month);
+        dateParsed = dateParsed && match.Groups.TryGetValue(nameof(day), out var dayGroup) && int.TryParse(dayGroup.ValueSpan, out day);
+
+        timeParsed = dateParsed && match.Groups.TryGetValue(nameof(hour), out var hourGroup) && int.TryParse(hourGroup.ValueSpan, out hour);
+        timeParsed = timeParsed && match.Groups.TryGetValue(nameof(minute), out var minuteGroup) && int.TryParse(minuteGroup.ValueSpan, out minute);
+        timeParsed = timeParsed && match.Groups.TryGetValue(nameof(second), out var secondGroup) && int.TryParse(secondGroup.ValueSpan, out second);
+
+        if (timeParsed || dateParsed)
+        {
+            var dt = new DateTime(year, month, day, hour, minute, second, DateTimeKind.Local);
+            created = dt.ToUniversalTime();
+            return true;
+        }
+
+        return false;
+    }
+
 }

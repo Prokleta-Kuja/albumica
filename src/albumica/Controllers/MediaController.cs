@@ -29,7 +29,7 @@ public class MediaController : ControllerBase
     [ProducesResponseType(typeof(ListResponse<MediaLM>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync([FromQuery] FilterQuery req)
     {
-        var query = _db.Media.AsNoTracking();
+        var query = _db.Media.AsNoTracking().Where(m => m.Created.HasValue);
         var count = await query.CountAsync();
 
         if (!string.IsNullOrWhiteSpace(req.SortBy) && Enum.TryParse<MediaSortBy>(req.SortBy, true, out var sortBy))
@@ -95,7 +95,7 @@ public class MediaController : ControllerBase
         await _db.SaveChangesAsync();
         System.IO.File.Delete(C.Paths.MediaDataFor(media.Original));
         if (!string.IsNullOrWhiteSpace(media.Preview))
-            System.IO.File.Delete(C.Paths.MediaDataFor(media.Preview));
+            System.IO.File.Delete(C.Paths.PreviewDataFor(media.Preview));
 
         await transaction.CommitAsync();
 
@@ -104,7 +104,8 @@ public class MediaController : ControllerBase
     [HttpGet("{*path}")]
     public IActionResult GetFile(string path)
     {
-        var filePath = C.Paths.MediaDataFor(path);
+        var isPreview = Path.GetFileNameWithoutExtension(path).EndsWith(C.Paths.PreviewFileNameSuffix);
+        var filePath = isPreview ? C.Paths.PreviewDataFor(path) : C.Paths.MediaDataFor(path);
         var contentType = GetResponseContentTypeOrDefault(filePath);
 
         return PhysicalFile(filePath, contentType);
