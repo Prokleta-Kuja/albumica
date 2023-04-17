@@ -44,6 +44,10 @@ auth.initialize()
               </li>
               <li v-if="auth.isAdmin" class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar"
                 data-bs-dismiss="offcanvas">
+                <RouterLink class="nav-link py-2 px-0 px-lg-2" :to="{ name: 'tags' }">Oznake</RouterLink>
+              </li>
+              <li v-if="auth.isAdmin" class="nav-item col-6 col-lg-auto" data-bs-target="#appNavbar"
+                data-bs-dismiss="offcanvas">
                 <RouterLink class="nav-link py-2 px-0 px-lg-2" :to="{ name: 'uploads' }">Otprema</RouterLink>
               </li>
             </ul>
@@ -83,7 +87,7 @@ auth.initialize()
         </div>
       </nav>
     </header>
-    <div class="container mt-4">
+    <div class="container-fluid mt-4">
       <RouterView />
     </div>
   </template>

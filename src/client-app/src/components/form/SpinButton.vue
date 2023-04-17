@@ -18,7 +18,7 @@ const type = computed<undefined | "submit" | "button" | "reset">(() => {
     <button class="btn" :type="type" @click="onClick" :disabled="loading">
         <template v-if="loading">
             <span class="spinner-border spinner-border-sm"></span>
-            <span v-if="loadingText">{{ loadingText }}</span>
+            <span v-if="loadingText">&nbsp;{{ loadingText }}</span>
         </template>
         <span v-else>&nbsp;{{ text }}</span>
     </button>

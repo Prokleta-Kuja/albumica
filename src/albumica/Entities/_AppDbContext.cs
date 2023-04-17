@@ -21,7 +21,6 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
 {
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     public DbSet<Media> Media => Set<Media>();
-    public DbSet<Person> Persons => Set<Person>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<User> Users => Set<User>();
 
@@ -41,18 +40,12 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
         builder.Entity<User>(e =>
         {
             e.HasKey(e => e.UserId);
-            e.HasMany(e => e.Basket).WithMany();
+            e.HasMany(e => e.Basket).WithMany(e => e.Users);
         });
 
         builder.Entity<Media>(e =>
         {
             e.HasKey(e => e.MediaId);
-        });
-
-        builder.Entity<Person>(e =>
-        {
-            e.HasKey(e => e.PersonId);
-            e.HasMany(e => e.Media).WithMany(e => e.Persons);
         });
 
         builder.Entity<Tag>(e =>

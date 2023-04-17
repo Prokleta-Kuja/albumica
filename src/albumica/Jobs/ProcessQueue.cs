@@ -32,6 +32,7 @@ public partial class ProcessQueue
         var files = Directory.EnumerateFiles(C.Paths.QueueData, "*", SearchOption.TopDirectoryOnly);
         foreach (var file in files)
         {
+            token.ThrowIfCancellationRequested();
             try
             {
                 var ext = Path.GetExtension(file);

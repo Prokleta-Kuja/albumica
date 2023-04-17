@@ -8,5 +8,8 @@ export type MediaLM = {
     preview?: string | null;
     isVideo: boolean;
     created?: string | null;
+    inBasket: boolean;
+    hasTags: boolean;
+    hidden: boolean;
 };
 

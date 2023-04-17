@@ -1,36 +1,36 @@
 <script setup lang="ts">
 import { reactive } from "vue";
-import { type UserLM, UserService } from "@/api";
+import { type TagLM, type TagVM, TagService } from "@/api";
 import Search from '@/components/form/SearchBox.vue'
 import { Header, Pages, Sizes, type ITableParams, initParams, updateParams } from "@/components/table"
-import AddUser from "@/modals/AddUser.vue";
+import AddTag from "@/modals/AddTag.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
-import EditUser from "@/modals/EditUser.vue";
+import EditTag from "@/modals/EditTag.vue";
 
-interface IUserParams extends ITableParams {
+interface ITagParams extends ITableParams {
     searchTerm?: string;
 }
 
-const data = reactive<{ params: IUserParams, items: UserLM[], update?: UserLM, delete?: UserLM }>({ params: initParams(), items: [] });
+const data = reactive<{ params: ITagParams, items: TagLM[], update?: TagLM, delete?: TagLM }>({ params: initParams(), items: [] });
 const refresh = (params?: ITableParams) => {
     if (params)
         data.params = params;
 
-    UserService.getUsers({ ...data.params }).then(r => { data.items = r.items; updateParams(data.params, r) });
+    TagService.getTags({ ...data.params }).then(r => { data.items = r.items; updateParams(data.params, r) });
 };
-const showEdit = (user: UserLM) => data.update = user;
-const hideEdit = (user?: UserLM) => {
+const showEdit = (tag: TagLM) => data.update = tag;
+const hideEdit = (tag?: TagVM) => {
     data.update = undefined;
-    if (user)
+    if (tag)
         refresh();
 }
-const showDelete = (user: UserLM) => data.delete = user;
+const showDelete = (tag: TagLM) => data.delete = tag;
 const hideDelete = () => data.delete = undefined;
-const deleteUser = () => {
+const deleteTag = () => {
     if (!data.delete)
         return;
 
-    UserService.deleteUser({ userId: data.delete.id })
+    TagService.deleteTag({ tagId: data.delete.id })
         .then(() => {
             refresh();
             hideDelete();
@@ -38,24 +38,17 @@ const deleteUser = () => {
         .catch(() => {/* TODO: show error */ })
 }
 
-const disabledText = (dateTime: string | null | undefined) => {
-    if (!dateTime)
-        return '-';
-    var dt = new Date(dateTime);
-    return dt.toLocaleString();
-}
-
 refresh();
 </script>
 <template>
     <div class="d-flex align-items-center flex-wrap">
-        <h1 class="display-6 me-3">Korisnici</h1>
-        <AddUser :onAdded="() => refresh()" />
-        <EditUser v-if="data.update" :model="data.update" :onUpdated="hideEdit" />
+        <h1 class="display-6 me-3">Oznake</h1>
+        <AddTag :onAdded="() => refresh()" />
+        <EditTag v-if="data.update" :model="data.update" :onUpdated="hideEdit" />
     </div>
     <div class="d-flex flex-wrap">
         <Sizes class="me-3 mb-2" style="max-width:8rem" :params="data.params" :on-change="refresh" />
-        <Search label="Pretraži" autoFocus class="me-3 mb-2" style="max-width:16rem" placeholder="Naziv, prikaz"
+        <Search label="Pretraži" autoFocus class="me-3 mb-2" style="max-width:16rem" placeholder="Naziv"
             v-model="data.params.searchTerm" :on-change="refresh" />
     </div>
     <div class="table-responsive">
@@ -63,29 +56,16 @@ refresh();
             <thead>
                 <tr>
                     <Header :params="data.params" :on-sort="refresh" column="name" display="Naziv" />
-                    <Header :params="data.params" :on-sort="refresh" column="displayName" display="Prikaz" />
-                    <Header :params="data.params" :on-sort="refresh" column="isAdmin" display="Admin" />
-                    <Header :params="data.params" :on-sort="refresh" column="disabled" display="Onemogućen" />
+                    <Header :params="data.params" :on-sort="refresh" column="order" display="Slijed" />
+                    <Header :params="data.params" :on-sort="refresh" column="mediaCount" display="Medija" />
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="item in data.items" :key="item.id" class="align-middle">
                     <td>{{ item.name }}</td>
-                    <td>{{ item.displayName }}</td>
-                    <td>
-                        <svg v-if="item.isAdmin" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                            fill="currentColor" class="bi bi-check-lg text-success" viewBox="0 0 16 16">
-                            <path
-                                d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z" />
-                        </svg>
-                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="bi bi-x-lg text-danger" viewBox="0 0 16 16">
-                            <path
-                                d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
-                        </svg>
-                    </td>
-                    <td>{{ disabledText(item.disabled) }}</td>
+                    <td>{{ item.order }}</td>
+                    <td>{{ item.mediaCount }}</td>
                     <td class="text-end p-1">
                         <div class="btn-group" role="group">
                             <button class="btn btn-sm btn-secondary" @click="showEdit(item)" title="Edit">
@@ -111,7 +91,7 @@ refresh();
         </table>
     </div>
     <Pages :params="data.params" :on-change="refresh" />
-    <ConfirmationModal v-if="data.delete" title="Brisanje korisnika" :onClose="hideDelete" :onConfirm="deleteUser" shown>
-        Jesi siguran da želiš obrisati korisnika <b>{{ data.delete.name }}</b>?
+    <ConfirmationModal v-if="data.delete" title="Brisanje oznake" :onClose="hideDelete" :onConfirm="deleteTag" shown>
+        Jesi siguran da želiš obrisati oznaku <b>{{ data.delete.name }}</b>?
     </ConfirmationModal>
 </template>

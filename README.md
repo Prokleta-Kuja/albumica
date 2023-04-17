@@ -19,11 +19,12 @@ npx openapi-typescript-codegen --useOptions --input http://localhost:5080/swagge
 sudo apt update && sudo apt-get install -y ffmpeg
 ```
 
-### Misc
+### Migrations
 
 ```
-dotnet outdated ./src/
-dotnet ef migrations add -o Data/Migrations --no-build Initial
+dotnet build
+dotnet ef migrations add --no-build -c SqliteDbContext -o ./Entities/Migrations/Sqlite Initial
+dotnet ef migrations add --no-build -c PostgresDbContext -o ./Entities/Migrations/Postgres Initial
 ```
 
 `ffprobe -v quiet -show_format -print_format json -i VID_20210831_104209.mp4`

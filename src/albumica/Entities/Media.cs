@@ -7,9 +7,9 @@ public class Media
     public required string Original { get; set; }
     public string? Preview { get; set; }
     public bool IsVideo { get; set; }
+    public bool Hidden { get; set; }
     public DateTime? Created { get; set; }
-    public DateTime? Categorized { get; set; }
 
-    public List<Person>? Persons { get; set; }
     public List<Tag>? Tags { get; set; }
+    public List<User>? Users { get; set; }
 }

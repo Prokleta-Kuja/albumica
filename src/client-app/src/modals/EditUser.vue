@@ -35,7 +35,7 @@ const submit = () => {
 };
 </script>
 <template>
-    <Modal v-if="user.model" title="Edit user" shown :onClose="toggle">
+    <Modal v-if="user.model" title="Uredi korisnika" shown :onClose="toggle">
         <template #body>
             <form @submit.prevent="submit">
                 <Text class="mb-3" label="Naziv" autoFocus v-model="user.model.name" required

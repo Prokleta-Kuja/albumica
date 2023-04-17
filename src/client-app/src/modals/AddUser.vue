@@ -22,6 +22,7 @@ const submit = () => {
     user.error = undefined;
     UserService.createUser({ requestBody: user.model })
         .then(r => {
+            shown.value = false;
             if (props.onAdded)
                 props.onAdded(r)
         })

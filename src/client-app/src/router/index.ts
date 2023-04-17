@@ -33,6 +33,11 @@ const router = createRouter({
       component: () => import('../views/UsersView.vue'),
     },
     {
+      path: '/oznake',
+      name: 'tags',
+      component: () => import('../views/TagsView.vue'),
+    },
+    {
       path: '/otprema',
       name: 'uploads',
       component: () => import('../views/UploadsView.vue'),
