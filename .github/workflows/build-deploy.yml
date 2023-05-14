@@ -57,6 +57,7 @@ jobs:
           ssh -p $remote_port -i ~/.ssh/id_rsa $remote_user@$remote_host "$remote_script ${{ github.RUN_NUMBER }}"
           rm ~/.ssh/id_rsa
       - name: Notify
+        continue-on-error: true
         env:
           notify_cred: ${{ secrets.NOTIFY_CRED }}
           notify_url: ${{ secrets.NOTIFY_URL }}
@@ -67,7 +68,7 @@ jobs:
             -u $notify_cred \
             -H "Title: Albumica deployed" \
             -H "Tags: octopus" \
-            -H "Priority: high" \
+            -H "Priority: 3" \
             -H "Actions: view, GitHub, $action_url, clear=true; \
                          view, App, $app_url, clear=true" \
             -H "Content-Type: text/plain" \
