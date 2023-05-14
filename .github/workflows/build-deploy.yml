@@ -49,14 +49,41 @@ jobs:
           remote_key: ${{ secrets.SSH_KEY }}
           remote_script: ${{ secrets.SSH_SCRIPT }}
         run: |
-          mkdir ~/.ssh          
-          echo "$remote_key" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          hosts="$(dig +short "$remote_host" | grep -v '\.$' | sed -z 's|\n|,|g')$remote_host"
-          ssh-keyscan -p $remote_port -H "$hosts" > ~/.ssh/known_hosts
-          ssh -p $remote_port -i ~/.ssh/id_rsa $remote_user@$remote_host "$remote_script ${{ github.RUN_NUMBER }}"
-          rm ~/.ssh/id_rsa
-      - name: Notify
+          exit 1
+          # mkdir ~/.ssh          
+          # echo "$remote_key" > ~/.ssh/id_rsa
+          # chmod 600 ~/.ssh/id_rsa
+          # hosts="$(dig +short "$remote_host" | grep -v '\.$' | sed -z 's|\n|,|g')$remote_host"
+          # ssh-keyscan -p $remote_port -H "$hosts" > ~/.ssh/known_hosts
+          # ssh -p $remote_port -i ~/.ssh/id_rsa $remote_user@$remote_host "$remote_script ${{ github.RUN_NUMBER }}"
+          # rm ~/.ssh/id_rsa
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build, deploy]
+    steps:
+      - name: Success
+        if: success()
+        continue-on-error: true
+        env:
+          notify_cred: ${{ secrets.NOTIFY_CRED }}
+          notify_url: ${{ secrets.NOTIFY_URL }}
+          app_url: ${{ secrets.URL }}
+          action_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl \
+            -u $notify_cred \
+            -H "Title: Albumica deployed" \
+            -H "Tags: octopus" \
+            -H "Priority: 3" \
+            -H "Actions: view, GitHub, $action_url, clear=true; \
+                         view, App, $app_url, clear=true" \
+            -H "Content-Type: text/plain" \
+            -d $'${{ github.REPOSITORY }} deployed.' \
+            $notify_url
+      - name: Failure
+        if: failure()
         continue-on-error: true
         env:
           notify_cred: ${{ secrets.NOTIFY_CRED }}
