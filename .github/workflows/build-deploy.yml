@@ -64,7 +64,7 @@ jobs:
     needs: [build, deploy]
     steps:
       - name: Success
-        if: ${{ needs.build.result == 'success' }} && ${{ needs.deploy.result == 'success' }}
+        if: ${{ needs.build.result == 'success' && needs.deploy.result == 'success' }}
         continue-on-error: true
         env:
           notify_cred: ${{ secrets.NOTIFY_CRED }}
@@ -83,7 +83,7 @@ jobs:
             -d $'${{ github.REPOSITORY }} deployed.' \
             $notify_url
       - name: Failure
-        if: ${{ needs.build.result == 'failure' }} || ${{ needs.deploy.result == 'failure' }}
+        if: ${{ needs.build.result == 'failure' || needs.deploy.result == 'failure' }}
         continue-on-error: true
         env:
           notify_cred: ${{ secrets.NOTIFY_CRED }}
@@ -94,7 +94,7 @@ jobs:
           curl \
             -u $notify_cred \
             -H "Title: Albumica wasn't deployed" \
-            -H "Tags: octopus" \
+            -H "Tags: cursing_face" \
             -H "Priority: 4" \
             -H "Actions: view, GitHub, $action_url" \
             -H "Content-Type: text/plain" \
