@@ -1,11 +1,10 @@
 # Albumica
 
-- A page dedicated to fix created date?
-- Persons CRUD
-- Tags CRUD
-- Categorization UI
+- remove no create query
+- fix media count on tag selection &nbsp;
+- tag selection order by asc
+- after deletion, no way to return to all
 - Basket save as list for streaming zip
-- Explore postgres backup
 
 ## OpenAPI
 
