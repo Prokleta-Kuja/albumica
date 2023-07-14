@@ -1,5 +1,6 @@
 # Albumica
 
+- update original field in media to match preview but without preview suffix and extension
 - remove no create query
 - fix media count on tag selection &nbsp;
 - tag selection order by asc
@@ -14,6 +15,7 @@ npx openapi-typescript-codegen --useOptions --input http://localhost:5080/swagge
 ```
 
 ## Dependencies
+
 ```
 sudo apt update && sudo apt-get install -y ffmpeg
 ```

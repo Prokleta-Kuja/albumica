@@ -92,24 +92,27 @@ public partial class ProcessQueue
             return;
         }
 
-        var ext = Path.GetExtension(filePath);
-        var origFileName = Path.GetFileName(filePath);
-        var prevFileName = $"{Path.GetFileNameWithoutExtension(filePath)}{C.Paths.PreviewFileNameSuffix}.webp";
-        var origFilePath = C.Paths.MediaDataFor(origFileName);
-        var prevFilePath = C.Paths.PreviewDataFor(prevFileName);
+        var ext = Path.GetExtension(filePath); // .jpg
+        var nameWithoutExtension = Path.GetFileNameWithoutExtension(filePath); // Image
+        var importFileName = Path.GetFileName(filePath); // Image.jpg
+        var origFileName = importFileName; // Image.jpg
+        var prevFileName = $"{nameWithoutExtension}{C.Paths.PreviewFileNameSuffix}.webp"; // Image_preview.webp
+        var origFilePath = C.Paths.MediaDataFor(origFileName); // orig/Image.jpg
+        var prevFilePath = C.Paths.PreviewDataFor(prevFileName); // prev/Image_preview.webp
 
-        if (File.Exists(origFilePath))
+        if (File.Exists(origFilePath)) // orig/Image.jpg
         {
-            var newFileName = $"{Path.GetFileNameWithoutExtension(origFileName)}_{DateTime.UtcNow.Ticks}{Path.GetExtension(origFileName)}";
-            prevFileName = $"{Path.GetFileNameWithoutExtension(newFileName)}{C.Paths.PreviewFileNameSuffix}.webp";
-            origFilePath = C.Paths.MediaDataFor(newFileName);
-            prevFilePath = C.Paths.PreviewDataFor(prevFileName);
+            origFileName = $"{nameWithoutExtension}_{DateTime.UtcNow.Ticks}{ext}"; // Image_123.jpg
+            prevFileName = $"{nameWithoutExtension}{C.Paths.PreviewFileNameSuffix}.webp";// Image_123_preview.webp
+            origFilePath = C.Paths.MediaDataFor(origFileName); // orig/Image_123.jpg
+            prevFilePath = C.Paths.PreviewDataFor(prevFileName); // prev/Image_123_preview.webp
         }
         File.Move(filePath, origFilePath);
 
         var media = new Media
         {
             SHA256 = sha256,
+            Import = importFileName,
             Original = origFileName,
             IsVideo = s_vidFormats.Contains(ext),
         };

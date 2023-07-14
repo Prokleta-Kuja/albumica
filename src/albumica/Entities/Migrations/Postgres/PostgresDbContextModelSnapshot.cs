@@ -100,6 +100,11 @@ namespace albumica.Entities.Migrations.Postgres
                         .HasColumnType("boolean")
                         .HasColumnName("hidden");
 
+                    b.Property<string>("Import")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("import");
+
                     b.Property<bool>("IsVideo")
                         .HasColumnType("boolean")
                         .HasColumnName("is_video");

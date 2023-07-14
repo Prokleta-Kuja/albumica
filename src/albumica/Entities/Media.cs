@@ -4,6 +4,7 @@ public class Media
 {
     public int MediaId { get; set; }
     public required string SHA256 { get; set; }
+    public required string Import { get; set; }
     public required string Original { get; set; }
     public string? Preview { get; set; }
     public bool IsVideo { get; set; }
