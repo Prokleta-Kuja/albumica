@@ -1,12 +1,18 @@
+using albumica.Jobs;
 using Hangfire;
 using Hangfire.Storage;
 
-namespace poshtar.Extensions;
+namespace albumica.Extensions;
 
 public static class RecurringJobs
 {
     public static void ReregisterRecurringJobs(this IApplicationBuilder app)
     {
+        var defaultOpt = new RecurringJobOptions
+        {
+            MisfireHandling = MisfireHandlingMode.Ignorable,
+            TimeZone = C.TZ,
+        };
         // Track active recurring jobs and add/update
         var activeJobIds = new HashSet<string>();
 
@@ -15,7 +21,7 @@ public static class RecurringJobs
         //    nameof(CleanupTransactions),
         //    j => j.Run(null, CancellationToken.None),
         //    "0 4 * * *", // Every day @ 4
-        //    C.TZ);
+        //    defaultOpt);
 
         // Get all registered recurring jobs
         var conn = JobStorage.Current.GetConnection();

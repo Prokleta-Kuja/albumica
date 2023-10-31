@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
-using poshtar.Extensions;
 using Serilog;
 using Serilog.Events;
 
@@ -152,7 +151,7 @@ public class Program
                 {
                     spa.Options.SourcePath = "../web";
                     if (app.Environment.IsDevelopment())
-                        spa.UseProxyToSpaDevelopmentServer("http://localhost:3000");
+                        spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
                 });
             });
 
