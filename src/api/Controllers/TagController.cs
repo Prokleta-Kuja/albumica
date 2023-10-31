@@ -36,14 +36,14 @@ public class TagController : ControllerBase
         if (!string.IsNullOrWhiteSpace(req.SortBy) && Enum.TryParse<TagsSortBy>(req.SortBy, true, out var sortBy))
             query = sortBy switch
             {
-                TagsSortBy.Name => query.Order(u => u.Name, req.Ascending),
-                TagsSortBy.Order => query.Order(u => u.Order, req.Ascending),
+                TagsSortBy.Name => query.Order(u => u.Name, req.Ascending).ThenByDescending(m => m.Media!.Count),
+                TagsSortBy.Order => query.Order(u => u.Order, req.Ascending).ThenByDescending(m => m.Media!.Count),
                 TagsSortBy.MediaCount => query.Order(u => u.Media!.Count, req.Ascending),
                 _ => query
             };
         else
         {
-            req.Ascending = false;
+            req.Ascending = true;
             req.SortBy = nameof(TagsSortBy.Order);
             query = query.Order(m => m.Order, req.Ascending).ThenByDescending(m => m.Media!.Count);
         }
