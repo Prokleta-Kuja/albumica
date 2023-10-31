@@ -11,9 +11,9 @@ export const useAuth = defineStore('auth', () => {
   const username = ref<string | undefined | null>(undefined)
 
   const setLoginInfo = (info: AuthStatusModel) => {
-    isAuthenticated.value = info.authenticated;
-    username.value = info.username;
-    isAdmin.value = info.isAdmin;
+    isAuthenticated.value = info.authenticated
+    username.value = info.username
+    isAdmin.value = info.isAdmin
     setExpire(info.expires)
   }
 
@@ -22,12 +22,12 @@ export const useAuth = defineStore('auth', () => {
     username.value = ''
   }
 
-  const initialize = () =>  
+  const initialize = () =>
     AuthService.status()
       .then((r) => {
-        isAuthenticated.value = r.authenticated;
-        username.value = r.username;
-        isAdmin.value = r.isAdmin;
+        isAuthenticated.value = r.authenticated
+        username.value = r.username
+        isAdmin.value = r.isAdmin
         setExpire(r.expires)
       })
       .finally(() => (initialized.value = true))

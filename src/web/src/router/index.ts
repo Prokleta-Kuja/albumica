@@ -20,27 +20,27 @@ const router = createRouter({
     {
       path: '/prijava',
       name: 'login',
-      component: () => import('../views/LoginView.vue'),
+      component: () => import('../views/LoginView.vue')
     },
     {
       path: '/odjava',
       name: 'logout',
-      component: () => import('../views/LogoutView.vue'),
+      component: () => import('../views/LogoutView.vue')
     },
     {
       path: '/korisnici',
       name: 'users',
-      component: () => import('../views/UsersView.vue'),
+      component: () => import('../views/UsersView.vue')
     },
     {
       path: '/oznake',
       name: 'tags',
-      component: () => import('../views/TagsView.vue'),
+      component: () => import('../views/TagsView.vue')
     },
     {
       path: '/otprema',
       name: 'uploads',
-      component: () => import('../views/UploadsView.vue'),
+      component: () => import('../views/UploadsView.vue')
     }
     // {
     //   path: '/users/:id(\\d+)',
