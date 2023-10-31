@@ -19,7 +19,6 @@ public partial class ProcessQueue
     static readonly HashSet<string> s_vidFormats = new(StringComparer.InvariantCultureIgnoreCase) { ".MOV", ".AVI", ".MP4", };
     readonly ILogger<ProcessQueue> _logger;
     readonly AppDbContext _db;
-    Dictionary<string, DateTime?> _existingHashes = new();
     public ProcessQueue(ILogger<ProcessQueue> logger, AppDbContext db)
     {
         _logger = logger;
@@ -30,7 +29,6 @@ public partial class ProcessQueue
     [DisableConcurrentExecution(60 * 10)] // 10min
     public async Task Run(CancellationToken token)
     {
-        var existing = await _db.Media.ToDictionaryAsync(m => m.SHA256, m => m.Created, token);
         var files = Directory.EnumerateFiles(C.Paths.QueueData, "*", SearchOption.TopDirectoryOnly);
         foreach (var file in files)
         {
@@ -86,9 +84,10 @@ public partial class ProcessQueue
         var sha256 = Convert.ToHexString(sha256Bytes);
         await fs.DisposeAsync();
 
-        if (_existingHashes.TryGetValue(sha256, out var dt))
+        var isDuplicate = await _db.Media.AnyAsync(m => m.SHA256 == sha256, token);
+        if (isDuplicate)
         {
-            _logger.LogWarning("Deleting duplicate {FilePath} as it was imported on {ImportedDate}", Path.GetFileName(filePath), dt);
+            _logger.LogWarning("Deleting duplicate {FilePath}", Path.GetFileName(filePath));
             File.Delete(filePath);
             return;
         }
