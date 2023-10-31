@@ -29,15 +29,20 @@ public class MediaController : ControllerBase
     [ProducesResponseType(typeof(ListResponse<MediaLM>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync([FromQuery] MediaQuery req)
     {
+        var isAdmin = User.IsInRole(C.ADMIN_ROLE);
         var query = _db.Media.AsNoTracking();
 
         if (req.InBasket.HasValue && req.InBasket.Value && User.Identity != null)
             query = query.Where(m => m.Users!.Any(u => u.Name == User.Identity.Name));
 
-        if (!User.IsInRole(C.ADMIN_ROLE))
+        if (!isAdmin)
             query = query.Where(m => !m.Hidden);
+        else if (req.Hidden.HasValue)
+            query = query.Where(m => m.Hidden == req.Hidden.Value);
 
-        if (req.NoCreate.HasValue)
+        if (!isAdmin)
+            query = query.Where(m => m.Created.HasValue);
+        else if (isAdmin && req.NoCreate.HasValue)
             query = query.Where(m => m.Created.HasValue != req.NoCreate.Value);
 
         if (req.TagIds != null)
@@ -116,6 +121,7 @@ public class MediaController : ControllerBase
     {
         var media = await _db.Media
           .Where(u => u.MediaId == mediaId)
+          .Include(u => u.Tags)
           .FirstOrDefaultAsync();
 
         if (media == null)

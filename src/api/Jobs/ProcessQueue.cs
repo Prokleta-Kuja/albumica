@@ -19,6 +19,7 @@ public partial class ProcessQueue
     static readonly HashSet<string> s_vidFormats = new(StringComparer.InvariantCultureIgnoreCase) { ".MOV", ".AVI", ".MP4", };
     readonly ILogger<ProcessQueue> _logger;
     readonly AppDbContext _db;
+    Dictionary<string, DateTime?> _existingHashes = new();
     public ProcessQueue(ILogger<ProcessQueue> logger, AppDbContext db)
     {
         _logger = logger;
@@ -29,6 +30,7 @@ public partial class ProcessQueue
     [DisableConcurrentExecution(60 * 10)] // 10min
     public async Task Run(CancellationToken token)
     {
+        var existing = await _db.Media.ToDictionaryAsync(m => m.SHA256, m => m.Created, token);
         var files = Directory.EnumerateFiles(C.Paths.QueueData, "*", SearchOption.TopDirectoryOnly);
         foreach (var file in files)
         {
@@ -50,7 +52,7 @@ public partial class ProcessQueue
 
     [DisplayName("Reparse created")]
     [AutomaticRetry(Attempts = 0)]
-    public async Task ReparseCreated(CancellationToken token)
+    public async Task ReparseMissingCreated(CancellationToken token)
     {
         var media = await _db.Media.Where(m => !m.Created.HasValue || m.Created == DateTime.MaxValue).ToListAsync(token);
 
@@ -84,10 +86,9 @@ public partial class ProcessQueue
         var sha256 = Convert.ToHexString(sha256Bytes);
         await fs.DisposeAsync();
 
-        var isDuplicate = await _db.Media.AnyAsync(m => m.SHA256 == sha256, token);
-        if (isDuplicate)
+        if (_existingHashes.TryGetValue(sha256, out var dt))
         {
-            _logger.LogWarning("Discarding duplicate from queue {FilePath}", filePath);
+            _logger.LogWarning("Deleting duplicate {FilePath} as it was imported on {ImportedDate}", Path.GetFileName(filePath), dt);
             File.Delete(filePath);
             return;
         }
@@ -102,7 +103,8 @@ public partial class ProcessQueue
 
         if (File.Exists(origFilePath)) // orig/Image.jpg
         {
-            origFileName = $"{nameWithoutExtension}_{DateTime.UtcNow.Ticks}{ext}"; // Image_123.jpg
+            nameWithoutExtension = $"{nameWithoutExtension}_{DateTime.UtcNow.Ticks}"; // Image_123
+            origFileName = $"{nameWithoutExtension}{ext}"; // Image_123.jpg
             prevFileName = $"{nameWithoutExtension}{C.Paths.PreviewFileNameSuffix}.webp";// Image_123_preview.webp
             origFilePath = C.Paths.MediaDataFor(origFileName); // orig/Image_123.jpg
             prevFilePath = C.Paths.PreviewDataFor(prevFileName); // prev/Image_123_preview.webp
@@ -117,7 +119,7 @@ public partial class ProcessQueue
             IsVideo = s_vidFormats.Contains(ext),
         };
         _db.Media.Add(media);
-        await _db.SaveChangesAsync(CancellationToken.None);
+        await _db.SaveChangesAsync();
 
         if (s_imgFormats.Contains(ext))
         {

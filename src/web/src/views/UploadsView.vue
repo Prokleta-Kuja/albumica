@@ -38,7 +38,7 @@ const upload = (e: Event) => {
 }
 </script>
 <template>
-    <div v-if="state.error">Error occured</div>
+    <div v-if="state.error">Pogreška</div>
     <div v-else-if="state.complete">
         <p>Slike i(li) videi su dodani.</p>
         <div class="btn-group w-100">
@@ -54,5 +54,22 @@ const upload = (e: Event) => {
         <label for="add-to-queue" class="form-label">Dodaj slike ili videe</label>
         <input class="form-control" type="file" id="add-to-queue" multiple accept="*.jpg,*.jpeg,*.png,*.mov,*.avi,*.mp4"
             @change="upload">
+    </div>
+    <div class="accordion mb-3 mt-5" id="danger-accordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#danger-zone" aria-controls="danger-zone">
+                    Ne diraj
+                </button>
+            </h2>
+            <div id="danger-zone" class="accordion-collapse collapse" data-bs-parent="#danger-accordion">
+                <div class="accordion-body">
+                    <button type="button" class="btn btn-danger w-50" @click="clearComplete(true)">Obradi ponovno</button>
+                    <button type="button" class="btn btn-warning w-50" @click="UploadService.reparseMissingCreated">Parsiraj
+                        neuspjele</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>

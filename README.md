@@ -1,17 +1,11 @@
 # Albumica
 
-- update original field in media to match preview but without preview suffix and extension
-- remove no create query
-- fix media count on tag selection &nbsp;
-- tag selection order by asc
-- after deletion, no way to return to all
 - Basket save as list for streaming zip
 
 ## OpenAPI
 
 ```
-cd src/client-app
-npx openapi-typescript-codegen --useOptions --input http://localhost:5080/swagger/v1/swagger.json --output ./src/api
+npm exec --prefix src/web openapi-typescript-codegen -- --useOptions --input http://localhost:5080/swagger/v1/swagger.json --output ./src/web/src/api
 ```
 
 ## Dependencies

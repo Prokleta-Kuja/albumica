@@ -87,4 +87,15 @@ public class UploadsController : ControllerBase
 
         return Ok();
     }
+
+    [Authorize(Roles = C.ADMIN_ROLE)]
+    [HttpPut(Name = "ReparseMissingCreated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult ReparseMissingCreated()
+    {
+        _logger.LogDebug("Starting up reparsing missing created job");
+        _job.Enqueue<ProcessQueue>(j => j.ReparseMissingCreated(CancellationToken.None));
+
+        return Ok();
+    }
 }

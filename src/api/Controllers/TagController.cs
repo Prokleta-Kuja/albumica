@@ -45,7 +45,7 @@ public class TagController : ControllerBase
         {
             req.Ascending = false;
             req.SortBy = nameof(TagsSortBy.Order);
-            query = query.Order(m => m.Order, req.Ascending);
+            query = query.Order(m => m.Order, req.Ascending).ThenByDescending(m => m.Media!.Count);
         }
 
         var items = await query
@@ -55,7 +55,7 @@ public class TagController : ControllerBase
                 Id = t.TagId,
                 Name = t.Name,
                 Order = t.Order,
-                MediaCount = t.Media!.Count(),
+                MediaCount = t.Media!.Count,
             })
             .ToListAsync();
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MediaService, type MediaLM, TagService, type TagLM } from '@/api';
+import { MediaService, type MediaLM, TagService, type TagLM, type MediaVM } from '@/api';
 import { initParams, updateParams, type ITableParams } from '@/components/table';
 import { useAuth } from '@/stores/auth';
 import { useBasket } from '@/stores/basket';
@@ -16,13 +16,29 @@ export interface IMediaParams extends ITableParams {
 
 const auth = useAuth();
 const basket = useBasket();
-const state = reactive<{ basketOnly: boolean, noCreate?: boolean, tags: TagLM[], tagIds: Set<number> }>({ basketOnly: false, tags: [], tagIds: new Set() })
+const state = reactive<{ basketOnly: boolean, noCreateOnly?: boolean, createOnly?: boolean, tags: TagLM[], tagIds: Set<number> }>({ basketOnly: false, tags: [], tagIds: new Set() })
 const data = reactive<{ params: IMediaParams, items: MediaLM[], loading: boolean, selected?: MediaLM }>({ params: initParams(), items: [], loading: true });
 const refresh = (params?: ITableParams) => {
   if (params)
     data.params = params;
-  data.params.noCreate = auth.isAdmin ? state.noCreate : false;
-  data.params.inBasket = state.basketOnly ? true : undefined;
+  if (auth.isAdmin) {
+    if (state.noCreateOnly === state.createOnly)
+      data.params.noCreate = undefined
+    else if (state.noCreateOnly)
+      data.params.noCreate = true
+    else
+      data.params.noCreate = false
+  }
+  else data.params.noCreate = false
+  if (state.basketOnly) {
+    if (basket.itemIds.size > 0)
+      data.params.inBasket = true;
+    else {
+      data.params.page = 1
+      data.params.inBasket = undefined
+    }
+  }
+  else data.params.inBasket = undefined
   data.params.tagIds = state.tagIds.size > 0 ? [...state.tagIds] : undefined;
 
   data.loading = true;
@@ -32,6 +48,8 @@ const refresh = (params?: ITableParams) => {
     data.loading = false;
   });
 };
+const refreshTags = () => TagService.getTags({ size: 100 })
+  .then(r => state.tags = r.items)
 
 const hasMore = computed(() => data.params.page * data.params.size < data.params.total)
 const changePage = (by: number) => {
@@ -39,29 +57,44 @@ const changePage = (by: number) => {
   refresh();
 }
 const setSelected = (item: MediaLM) => data.selected = item;
-const clearSelected = (hasTags: boolean, hidden: boolean) => {
-  if (data.selected) {
-    data.selected.hasTags = hasTags;
-    data.selected.hidden = hidden;
-    data.selected = undefined;
+const clearSelected = (model?: MediaVM) => {
+  if (data.selected && model) {
+    data.selected.hasTags = model.tagIds.length > 0;
+    data.selected.hidden = model.hidden;
+    data.selected.created = model.created;
+    refreshTags()
   }
+  data.selected = undefined;
 }
-const addToBasket = (item: MediaLM) => MediaService.addToBasket({ mediaId: item.id })
-  .then(() => {
-    item.inBasket = true;
-    basket.addItem(item.id);
-  })
-  .catch(() => {/* TODO: notify  */ })
+const addToBasket = (item: MediaLM) => {
+  item.inBasket = true;
+  basket.addItem(item.id);
+  MediaService.addToBasket({ mediaId: item.id })
+    .catch(() => {
+      item.inBasket = false;
+      basket.removeItem(item.id);
+      if (state.basketOnly && basket.itemIds.size === 0) {
+        state.basketOnly = false;
+        data.params.page = 1;
+      }
+    })
+}
 
-const removeFromBasket = (item: MediaLM) => MediaService.removeFromBasket({ mediaId: item.id })
-  .then(() => {
-    item.inBasket = false;
-    basket.removeItem(item.id);
-    if (state.basketOnly && basket.itemIds.size === 0)
-      state.basketOnly = false;
-  })
-  .catch(() => {/* TODO: notify  */ })
+const removeFromBasket = (item: MediaLM) => {
+  item.inBasket = false;
+  basket.removeItem(item.id);
+  if (state.basketOnly && basket.itemIds.size === 0) {
+    state.basketOnly = false;
+    data.params.page = 1;
+  }
+  MediaService.removeFromBasket({ mediaId: item.id })
+    .catch(() => {
+      item.inBasket = true;
+      basket.addItem(item.id);
+    })
+}
 const toggleTag = (tagId: number) => {
+  data.params.page = 1;
   if (state.tagIds.has(tagId))
     state.tagIds.delete(tagId);
   else
@@ -70,12 +103,8 @@ const toggleTag = (tagId: number) => {
 }
 
 const setBasketView = (val: boolean) => {
+  data.params.page = 1;
   state.basketOnly = val;
-  refresh();
-}
-
-const toggleNoCreate = () => {
-  state.noCreate = !state.noCreate;
   refresh();
 }
 
@@ -88,52 +117,57 @@ const dateText = (dateTime: string | null | undefined) => {
 
 data.params.size = 100;
 refresh();
-TagService.getTags({ size: 100, sortBy: 'Order' })
-  .then(r => state.tags = r.items)
+refreshTags();
 </script>
 <template>
   <main>
     <EditMedia v-if="data.selected" :modelId="data.selected.id" :tags="state.tags" :onClosed="clearSelected" />
+    <div class="accordion mb-3" id="home-accordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#home-filter"
+            aria-controls="home-filter">
+            Filter
+          </button>
+        </h2>
+        <div id="home-filter" class="accordion-collapse collapse" data-bs-parent="#home-accordion">
+          <div class="accordion-body">
+            <div v-if="auth.isAdmin" class="mb-4">
+              <div class="form-check form-check-inline" @change="refresh()">
+                <input class="form-check-input" type="checkbox" id="noCreateOnly" v-model="state.noCreateOnly">
+                <label class="form-check-label" for="noCreateOnly">Bez datuma</label>
+              </div>
+              <div class="form-check form-check-inline" @change="refresh()">
+                <input class="form-check-input" type="checkbox" id="createOnly" v-model="state.createOnly">
+                <label class="form-check-label" for="createOnly">Sa datumima</label>
+              </div>
+            </div>
+            <template v-if="basket.itemIds.size > 0">
+              <div class="btn-group d-block mb-3" role="group">
+                <button type="button" class="btn btn-success w-50" :class="{ 'active': !state.basketOnly }"
+                  @click="setBasketView(false)">Sve slike</button>
+                <button type="button" class="btn btn-success w-50" :class="{ 'active': state.basketOnly }"
+                  @click="setBasketView(true)">Košarica {{ basket.itemIds.size.toLocaleString() }}</button>
+              </div>
+              <RemoveMedia v-if="auth.isAdmin" @removed="refresh" />
+            </template>
+            <ul class="list-group">
+              <li v-for="tag in state.tags" :key="tag.id" class="list-group-item d-flex justify-content-between pointer"
+                @click="toggleTag(tag.id)" :class="{ 'active': state.tagIds.has(tag.id) }">
+                <span>{{ tag.name }}</span>
+                <span> {{ tag.mediaCount.toLocaleString() }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
     <div v-if="data.loading" class="d-flex justify-content-center">
       <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
     <template v-else>
-      <div class="accordion mb-3" id="home-accordion">
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-              data-bs-target="#home-filter" aria-controls="home-filter">
-              Filter
-            </button>
-          </h2>
-          <div id="home-filter" class="accordion-collapse collapse" data-bs-parent="#home-accordion">
-            <div class="accordion-body">
-              <template v-if="auth.isAdmin">
-                <button v-if="state.noCreate" type="button" class="btn btn-warning w-100 mb-3" @click="toggleNoCreate">Sa
-                  datumima</button>
-                <button v-else type="button" class="btn btn-warning w-100 mb-3" @click="toggleNoCreate">Bez
-                  datuma</button>
-              </template>
-
-              <template v-if="basket.itemIds.size > 0">
-                <div class="btn-group d-block mb-3" role="group">
-                  <button type="button" class="btn btn-success w-50" :class="{ 'active': !state.basketOnly }"
-                    @click="setBasketView(false)">Sve slike</button>
-                  <button type="button" class="btn btn-success w-50" :class="{ 'active': state.basketOnly }"
-                    @click="setBasketView(true)">Košarica</button>
-                </div>
-                <RemoveMedia v-if="auth.isAdmin" />
-              </template>
-              <ul class="list-group">
-                <li v-for="tag in state.tags" :key="tag.id" class="list-group-item pointer" @click="toggleTag(tag.id)"
-                  :class="{ 'active': state.tagIds.has(tag.id) }">{{ tag.name }}{{ tag.mediaCount.toLocaleString() }}</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
       <button v-if="data.params.page !== 1" class="btn btn-primary w-100 mb-3" @click="changePage(-1)">Natrag</button>
       <div class="row align-items-center row-cols-sm-1 row-cols-md-2 row-cols-lg-6">
         <div v-for="item in data.items" :key="item.id">

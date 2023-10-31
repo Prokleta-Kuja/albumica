@@ -1,3 +1,4 @@
+/* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -25,6 +26,17 @@ export class UploadService {
     public static processQueue(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PATCH',
+            url: '/api/uploads',
+        });
+    }
+
+    /**
+     * @returns any Success
+     * @throws ApiError
+     */
+    public static reparseMissingCreated(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
             url: '/api/uploads',
         });
     }

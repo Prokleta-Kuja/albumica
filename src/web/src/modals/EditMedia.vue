@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MediaService, type MediaUM, type TagLM } from '@/api';
+import { MediaService, type MediaUM, type MediaVM, type TagLM } from '@/api';
 import Modal from '@/components/Modal.vue';
 import SpinButton from '@/components/form/SpinButton.vue';
 import DateTimeBox from '@/components/form/DateTimeBox.vue';
@@ -10,15 +10,15 @@ import { reactive } from 'vue';
 export interface IEditMedia {
     modelId: number;
     tags: TagLM[];
-    onClosed: (hasTags: boolean, hidden: boolean) => void;
+    onClosed: (model?: MediaVM) => void;
 }
 
 const props = defineProps<IEditMedia>();
 const state = reactive<{ tagIds: Set<number>, title: string }>({ tagIds: new Set(), title: "" })
 const media = reactive<IModelState<MediaUM>>({ model: { hidden: false } })
-const closed = () => {
+const closed = (model?: MediaVM) => {
     if (props.onClosed)
-        props.onClosed(state.tagIds.size > 0, media.model.hidden);
+        props.onClosed(model);
 }
 const submit = () => {
     media.submitting = true;
@@ -30,14 +30,22 @@ const submit = () => {
 };
 const toggleTag = (tagId: number) => {
     media.error = undefined;
-    if (state.tagIds.has(tagId))
+    if (state.tagIds.has(tagId)) {
+        state.tagIds.delete(tagId)
         MediaService.removeTag({ mediaId: props.modelId, tagId: tagId })
-            .then(() => state.tagIds.delete(tagId))
-            .catch(r => media.error = r.body);
-    else
+            .catch(r => {
+                media.error = r.body;
+                state.tagIds.add(tagId)
+            });
+    }
+    else {
+        state.tagIds.add(tagId)
         MediaService.addTag({ mediaId: props.modelId, tagId: tagId })
-            .then(() => state.tagIds.add(tagId))
-            .catch(r => media.error = r.body);
+            .catch(r => {
+                media.error = r.body;
+                state.tagIds.delete(tagId)
+            });
+    }
 }
 
 MediaService.getMediaById({ mediaId: props.modelId })
@@ -52,19 +60,21 @@ MediaService.getMediaById({ mediaId: props.modelId })
     <Modal :title="state.title" :onClose="closed" shown>
         <template #body>
             <form @submit.prevent="submit">
-                <DateTimeBox class="mb-3" label="Snimljeno" autoFocus v-model="media.model.created" required
+                <DateTimeBox class="mb-3" label="Snimljeno" autoFocus v-model="media.model.created"
                     :error="media.error?.errors?.created" />
-                <CheckBox class="mb-3" label="Skriveno" v-model="media.model.hidden" required
-                    :error="media.error?.errors?.hidden" />
+                <CheckBox class="mb-3" label="Skriveno" v-model="media.model.hidden" :error="media.error?.errors?.hidden" />
             </form>
             <ul class="list-group">
-                <li v-for="tag in props.tags" :key="tag.id" class="list-group-item pointer" @click="toggleTag(tag.id)"
-                    :class="{ 'active': state.tagIds.has(tag.id) }">{{ tag.name }}{{ tag.mediaCount.toLocaleString() }}</li>
+                <li v-for="tag in props.tags" :key="tag.id" class="list-group-item d-flex justify-content-between pointer"
+                    @click="toggleTag(tag.id)" :class="{ 'active': state.tagIds.has(tag.id) }">
+                    <span>{{ tag.name }}</span>
+                    <span>{{ tag.mediaCount.toLocaleString() }}</span>
+                </li>
             </ul>
         </template>
         <template #footer>
             <p v-if="media.error" class="text-danger">{{ media.error.message }}</p>
-            <button class="btn btn-outline-danger" @click="closed">Odustani</button>
+            <button class="btn btn-outline-danger" @click="closed()">Odustani</button>
             <SpinButton class="btn-primary" :loading="media.submitting" text="Spremi" loadingText="Spremanje"
                 @click="submit" />
         </template>
