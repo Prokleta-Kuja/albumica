@@ -1,20 +1,20 @@
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS dotnet-build
 WORKDIR /app
-COPY ./src/albumica/*.csproj .
+COPY ./src/api/*.csproj .
 RUN dotnet restore
-COPY ./src/albumica .
+COPY ./src/api .
 ARG Version=0.0.0
 RUN dotnet publish /p:Version=$Version -c Release -o /out --no-restore
 
 FROM node:19 AS node-build
 WORKDIR /app
-COPY ./src/client-app/ .
+COPY ./src/web/ .
 RUN npm ci && npm exec --vue-tsc && npm exec -- vite build --outDir /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
 WORKDIR /app
 COPY --from=dotnet-build /out ./
-COPY --from=node-build /out ./client-app
+COPY --from=node-build /out ./web
 
 ENV LC_ALL C
 ARG DEBIAN_FRONTEND=noninteractive

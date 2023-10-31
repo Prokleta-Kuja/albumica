@@ -85,8 +85,8 @@ public class Program
                     o.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
                     o.JsonSerializerOptions.WriteIndented = true;
                 });
-            // In production, the React files will be served from this directory
-            builder.Services.AddSpaStaticFiles(c => { c.RootPath = "client-app"; });
+            // In production, the Vue files will be served from this directory
+            builder.Services.AddSpaStaticFiles(c => { c.RootPath = "web"; });
 
             // Add Hangfire services.
             builder.Services.AddHangfire(configuration => configuration
@@ -150,7 +150,7 @@ public class Program
             {
                 builder.UseSpa(spa =>
                 {
-                    spa.Options.SourcePath = "../client-app";
+                    spa.Options.SourcePath = "../web";
                     if (app.Environment.IsDevelopment())
                         spa.UseProxyToSpaDevelopmentServer("http://localhost:3000");
                 });
