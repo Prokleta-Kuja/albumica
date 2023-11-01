@@ -41,9 +41,15 @@ public class MediaController : ControllerBase
             query = query.Where(m => m.Hidden == req.Hidden.Value);
 
         if (!isAdmin)
-            query = query.Where(m => m.Created.HasValue);
-        else if (isAdmin && req.NoCreate.HasValue)
-            query = query.Where(m => m.Created.HasValue != req.NoCreate.Value);
+            query = query.Where(m => m.Created.HasValue && m.Preview != null);
+        else if (isAdmin && req.View.HasValue)
+            query = req.View.Value switch
+            {
+                MediaView.NoCreate => query.Where(m => !m.Created.HasValue),
+                MediaView.NoTags => query.Where(m => !m.Tags!.Any()),
+                MediaView.NoPreview => query.Where(m => m.Preview == null),
+                _ => query
+            };
 
         if (req.TagIds != null)
             query = query.Where(m => m.Tags!.Any(t => req.TagIds.Contains(t.TagId)));
@@ -284,8 +290,15 @@ public class MediaQuery : FilterQuery
 {
     public bool? InBasket { get; set; }
     public bool? Hidden { get; set; }
-    public bool? NoCreate { get; set; }
+    public MediaView? View { get; set; }
     public int[]? TagIds { get; set; }
+}
+public enum MediaView
+{
+    All = 0,
+    NoCreate = 1,
+    NoTags = 2,
+    NoPreview = 3,
 }
 public enum MediaSortBy
 {

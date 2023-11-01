@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MediaService, type MediaLM, TagService, type TagLM, type MediaVM } from '@/api'
+import { MediaService, type MediaLM, TagService, type TagLM, type MediaVM, MediaView } from '@/api'
 import { initParams, updateParams, type ITableParams } from '@/components/table'
 import { useAuth } from '@/stores/auth'
 import { useBasket } from '@/stores/basket'
@@ -8,7 +8,7 @@ import EditMedia from '@/modals/EditMedia.vue'
 import RemoveMedia from '@/modals/RemoveMedia.vue'
 
 export interface IMediaParams extends ITableParams {
-  noCreate?: boolean
+  view?: MediaView
   inBasket?: boolean
   hidden?: boolean
   tagIds?: number[]
@@ -18,8 +18,6 @@ const auth = useAuth()
 const basket = useBasket()
 const state = reactive<{
   basketOnly: boolean
-  noCreateOnly?: boolean
-  createOnly?: boolean
   tags: TagLM[]
   tagIds: Set<number>
 }>({ basketOnly: false, tags: [], tagIds: new Set() })
@@ -31,11 +29,6 @@ const data = reactive<{
 }>({ params: initParams(), items: [], loading: true })
 const refresh = (params?: ITableParams) => {
   if (params) data.params = params
-  if (auth.isAdmin) {
-    if (state.noCreateOnly === state.createOnly) data.params.noCreate = undefined
-    else if (state.noCreateOnly) data.params.noCreate = true
-    else data.params.noCreate = false
-  } else data.params.noCreate = false
   if (state.basketOnly) {
     if (basket.itemIds.size > 0) data.params.inBasket = true
     else {
@@ -101,6 +94,12 @@ const toggleTag = (tagId: number) => {
   refresh()
 }
 
+const setMediaView = (val: MediaView) => {
+  data.params.page = 1
+  data.params.view = val
+  refresh()
+}
+
 const setBasketView = (val: boolean) => {
   data.params.page = 1
   state.basketOnly = val
@@ -141,23 +140,49 @@ refreshTags()
         <div id="home-filter" class="accordion-collapse collapse" data-bs-parent="#home-accordion">
           <div class="accordion-body">
             <div v-if="auth.isAdmin" class="mb-4">
-              <div class="form-check form-check-inline" @change="refresh()">
+              <div class="form-check form-check-inline">
                 <input
                   class="form-check-input"
-                  type="checkbox"
-                  id="noCreateOnly"
-                  v-model="state.noCreateOnly"
+                  type="radio"
+                  name="view"
+                  id="all"
+                  :checked="data.params.view === MediaView.All"
+                  @change="setMediaView(MediaView.All)"
                 />
-                <label class="form-check-label" for="noCreateOnly">Bez datuma</label>
+                <label class="form-check-label" for="all">Sve</label>
               </div>
-              <div class="form-check form-check-inline" @change="refresh()">
+              <div class="form-check form-check-inline">
                 <input
                   class="form-check-input"
-                  type="checkbox"
-                  id="createOnly"
-                  v-model="state.createOnly"
+                  type="radio"
+                  name="view"
+                  id="nocreate"
+                  :checked="data.params.view === MediaView.NoCreate"
+                  @change="setMediaView(MediaView.NoCreate)"
                 />
-                <label class="form-check-label" for="createOnly">Sa datumima</label>
+                <label class="form-check-label" for="nocreate">Bez datuma</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="view"
+                  id="notags"
+                  :checked="data.params.view === MediaView.NoTags"
+                  @change="setMediaView(MediaView.NoTags)"
+                />
+                <label class="form-check-label" for="notags">Bez oznaka</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="view"
+                  id="nopreview"
+                  :checked="data.params.view === MediaView.NoPreview"
+                  @change="setMediaView(MediaView.NoPreview)"
+                />
+                <label class="form-check-label" for="nopreview">Bez prikaza</label>
               </div>
             </div>
             <template v-if="basket.itemIds.size > 0">

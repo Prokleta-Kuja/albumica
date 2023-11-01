@@ -12,6 +12,7 @@ export type { LoginModel } from './models/LoginModel';
 export type { MediaLM } from './models/MediaLM';
 export type { MediaLMListResponse } from './models/MediaLMListResponse';
 export type { MediaUM } from './models/MediaUM';
+export { MediaView } from './models/MediaView';
 export type { MediaVM } from './models/MediaVM';
 export type { PlainError } from './models/PlainError';
 export type { TagCM } from './models/TagCM';

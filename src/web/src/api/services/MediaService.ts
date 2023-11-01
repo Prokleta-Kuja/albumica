@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { MediaLMListResponse } from '../models/MediaLMListResponse';
 import type { MediaUM } from '../models/MediaUM';
+import type { MediaView } from '../models/MediaView';
 import type { MediaVM } from '../models/MediaVM';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -19,7 +20,7 @@ export class MediaService {
     public static getMedia({
         inBasket,
         hidden,
-        noCreate,
+        view,
         tagIds,
         size,
         page,
@@ -29,7 +30,7 @@ export class MediaService {
     }: {
         inBasket?: boolean,
         hidden?: boolean,
-        noCreate?: boolean,
+        view?: MediaView,
         tagIds?: Array<number>,
         size?: number,
         page?: number,
@@ -43,7 +44,7 @@ export class MediaService {
             query: {
                 'inBasket': inBasket,
                 'hidden': hidden,
-                'noCreate': noCreate,
+                'view': view,
                 'tagIds': tagIds,
                 'size': size,
                 'page': page,
