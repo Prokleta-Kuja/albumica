@@ -5,7 +5,8 @@
 
 export enum MediaView {
     All = 0,
-    NoCreate = 1,
-    NoTags = 2,
-    NoPreview = 3,
+    OnlyCreate = 1,
+    NoCreate = 2,
+    NoTags = 3,
+    NoPreview = 4,
 }

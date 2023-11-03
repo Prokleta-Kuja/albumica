@@ -45,6 +45,7 @@ public class MediaController : ControllerBase
         else if (isAdmin && req.View.HasValue)
             query = req.View.Value switch
             {
+                MediaView.OnlyCreate => query.Where(m => m.Created.HasValue),
                 MediaView.NoCreate => query.Where(m => !m.Created.HasValue),
                 MediaView.NoTags => query.Where(m => !m.Tags!.Any()),
                 MediaView.NoPreview => query.Where(m => m.Preview == null),
@@ -296,9 +297,10 @@ public class MediaQuery : FilterQuery
 public enum MediaView
 {
     All = 0,
-    NoCreate = 1,
-    NoTags = 2,
-    NoPreview = 3,
+    OnlyCreate = 1,
+    NoCreate = 2,
+    NoTags = 3,
+    NoPreview = 4,
 }
 public enum MediaSortBy
 {

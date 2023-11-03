@@ -156,6 +156,17 @@ refreshTags()
                   class="form-check-input"
                   type="radio"
                   name="view"
+                  id="onlycreate"
+                  :checked="data.params.view === MediaView.OnlyCreate"
+                  @change="setMediaView(MediaView.OnlyCreate)"
+                />
+                <label class="form-check-label" for="onlycreate">Sa datumima</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="view"
                   id="nocreate"
                   :checked="data.params.view === MediaView.NoCreate"
                   @change="setMediaView(MediaView.NoCreate)"
