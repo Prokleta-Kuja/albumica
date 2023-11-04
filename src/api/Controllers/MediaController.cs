@@ -60,9 +60,9 @@ public class MediaController : ControllerBase
         if (!string.IsNullOrWhiteSpace(req.SortBy) && Enum.TryParse<MediaSortBy>(req.SortBy, true, out var sortBy))
             query = sortBy switch
             {
-                MediaSortBy.Created => query.Order(m => m.Created, req.Ascending),
-                MediaSortBy.IsVideo => query.Order(m => m.IsVideo, req.Ascending),
-                _ => query
+                MediaSortBy.Created => query.Order(m => m.Created, req.Ascending).ThenByDescending(m => m.MediaId),
+                MediaSortBy.IsVideo => query.Order(m => m.IsVideo, req.Ascending).ThenByDescending(m => m.MediaId),
+                _ => query.OrderByDescending(m => m.MediaId),
             };
         else
         {
