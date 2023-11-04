@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useAuth } from '@/stores/auth'
+import ThreeDotsVerticalIcon from '@/components/icons/ThreeDotsVerticalIcon.vue'
+import CalendarRangeFillIcon from '@/components/icons/CalendarRangeFillIcon.vue'
+import BoxArrowRightIcon from '@/components/icons/BoxArrowRightIcon.vue'
 const auth = useAuth()
 auth.initialize()
 </script>
@@ -27,18 +30,7 @@ auth.initialize()
             aria-controls="appNavbar"
             aria-label="Toggle navigation"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              class="bi bi-three-dots-vertical"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"
-              />
-            </svg>
+            <ThreeDotsVerticalIcon />
           </button>
         </div>
 
@@ -105,18 +97,7 @@ auth.initialize()
                 data-bs-dismiss="offcanvas"
               >
                 <a class="nav-link py-2 px-0 px-lg-2" href="/jobs" title="Jobs">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    class="bi bi-calendar-range-fill"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v1h16V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4V.5zM16 7V5H0v5h5a1 1 0 1 1 0 2H0v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9h-6a1 1 0 1 1 0-2h6z"
-                    />
-                  </svg>
+                  <CalendarRangeFillIcon />
                   <small class="d-lg-none ms-2">Jobs</small>
                 </a>
               </li>
@@ -132,23 +113,7 @@ auth.initialize()
               >
                 <RouterLink class="nav-link py-2 px-0 px-lg-2" :to="{ name: 'logout' }">
                   <span class="me-2">{{ auth.username }}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    class="bi bi-box-arrow-right"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"
-                    />
-                    <path
-                      fill-rule="evenodd"
-                      d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-                    />
-                  </svg>
+                  <BoxArrowRightIcon />
                   <small class="d-lg-none ms-2">Odjava</small>
                 </RouterLink>
               </li>

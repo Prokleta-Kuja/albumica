@@ -13,6 +13,9 @@ import {
 import AddUser from '@/modals/AddUser.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import EditUser from '@/modals/EditUser.vue'
+import XLgIcon from '@/components/icons/XLgIcon.vue'
+import PencilSquareIcon from '@/components/icons/PencilSquareIcon.vue'
+import CheckLgIcon from '@/components/icons/CheckLgIcon.vue'
 
 interface IUserParams extends ITableParams {
   searchTerm?: string
@@ -92,67 +95,17 @@ refresh()
           <td>{{ item.name }}</td>
           <td>{{ item.displayName }}</td>
           <td>
-            <svg
-              v-if="item.isAdmin"
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              class="bi bi-check-lg text-success"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"
-              />
-            </svg>
-            <svg
-              v-else
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              class="bi bi-x-lg text-danger"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
-              />
-            </svg>
+            <CheckLgIcon v-if="item.isAdmin" />
+            <XLgIcon v-else />
           </td>
           <td>{{ disabledText(item.disabled) }}</td>
           <td class="text-end p-1">
             <div class="btn-group" role="group">
               <button class="btn btn-sm btn-secondary" @click="showEdit(item)" title="Edit">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  class="bi bi-pencil-square"
-                  viewBox="0 0 16 16"
-                >
-                  <path
-                    d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"
-                  />
-                  <path
-                    fill-rule="evenodd"
-                    d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
-                  />
-                </svg>
+                <PencilSquareIcon />
               </button>
               <button class="btn btn-sm btn-danger" title="Delete" @click="showDelete(item)">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  class="bi bi-x-lg"
-                  viewBox="0 0 16 16"
-                >
-                  <path
-                    d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
-                  />
-                </svg>
+                <XLgIcon />
               </button>
             </div>
           </td>

@@ -6,6 +6,9 @@ import { useBasket } from '@/stores/basket'
 import { reactive, computed } from 'vue'
 import EditMedia from '@/modals/EditMedia.vue'
 import RemoveMedia from '@/modals/RemoveMedia.vue'
+import TagsFillIcon from '@/components/icons/TagsFillIcon.vue'
+import BagXFillIcon from '@/components/icons/BagXFillIcon.vue'
+import BagPlusFillIcon from '@/components/icons/BagPlusFillIcon.vue'
 
 export interface IMediaParams extends ITableParams {
   view?: MediaView
@@ -44,6 +47,10 @@ const refresh = (params?: ITableParams) => {
     updateParams(data.params, r)
     data.loading = false
   })
+}
+const refreshToStart = () => {
+  data.params.page = 1
+  refresh()
 }
 const refreshTags = () => TagService.getTags({ size: 100 }).then((r) => (state.tags = r.items))
 
@@ -88,22 +95,19 @@ const removeFromBasket = (item: MediaLM) => {
   })
 }
 const toggleTag = (tagId: number) => {
-  data.params.page = 1
   if (state.tagIds.has(tagId)) state.tagIds.delete(tagId)
   else state.tagIds.add(tagId)
-  refresh()
+  refreshToStart()
 }
 
 const setMediaView = (val: MediaView) => {
-  data.params.page = 1
   data.params.view = val
-  refresh()
+  refreshToStart()
 }
 
 const setBasketView = (val: boolean) => {
-  data.params.page = 1
   state.basketOnly = val
-  refresh()
+  refreshToStart()
 }
 
 const dateText = (dateTime: string | null | undefined) => {
@@ -215,7 +219,7 @@ refreshTags()
                   Košarica {{ basket.itemIds.size.toLocaleString() }}
                 </button>
               </div>
-              <RemoveMedia v-if="auth.isAdmin" @removed="refresh" />
+              <RemoveMedia v-if="auth.isAdmin" @removed="refreshToStart" />
             </template>
             <ul class="list-group">
               <li
@@ -265,21 +269,7 @@ refreshTags()
                     title="Ima oznake"
                     @click="setSelected(item)"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                      class="bi bi-tags-fill"
-                      viewBox="0 0 16 16"
-                    >
-                      <path
-                        d="M2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586V2zm3.5 4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
-                      />
-                      <path
-                        d="M1.293 7.793A1 1 0 0 1 1 7.086V2a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l.043-.043-7.457-7.457z"
-                      />
-                    </svg>
+                    <TagsFillIcon />
                   </button>
                   <button
                     v-else
@@ -287,21 +277,7 @@ refreshTags()
                     title="Nema oznake"
                     @click="setSelected(item)"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                      class="bi bi-tags-fill"
-                      viewBox="0 0 16 16"
-                    >
-                      <path
-                        d="M2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586V2zm3.5 4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
-                      />
-                      <path
-                        d="M1.293 7.793A1 1 0 0 1 1 7.086V2a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l.043-.043-7.457-7.457z"
-                      />
-                    </svg>
+                    <TagsFillIcon />
                   </button>
                 </template>
                 <button
@@ -310,19 +286,7 @@ refreshTags()
                   @click="removeFromBasket(item)"
                   title="Ukloni iz košarice"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    class="bi bi-bag-x-fill"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5v-.5zm1 0V4H15v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0zM6.854 8.146a.5.5 0 1 0-.708.708L7.293 10l-1.147 1.146a.5.5 0 0 0 .708.708L8 10.707l1.146 1.147a.5.5 0 0 0 .708-.708L8.707 10l1.147-1.146a.5.5 0 0 0-.708-.708L8 9.293 6.854 8.146z"
-                    />
-                  </svg>
+                  <BagXFillIcon />
                 </button>
                 <button
                   v-else
@@ -330,19 +294,7 @@ refreshTags()
                   @click="addToBasket(item)"
                   title="Dodaj u košaricu"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    class="bi bi-bag-plus-fill"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5v-.5zm1 0V4H15v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0zM8.5 8a.5.5 0 0 0-1 0v1.5H6a.5.5 0 0 0 0 1h1.5V12a.5.5 0 0 0 1 0v-1.5H10a.5.5 0 0 0 0-1H8.5V8z"
-                    />
-                  </svg>
+                  <BagPlusFillIcon />
                 </button>
               </div>
             </div>
